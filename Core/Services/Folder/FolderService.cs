@@ -146,8 +146,7 @@ namespace EVESyncTool.Core.Services.Folder
             {
                 await _onFolderLoaded(folder);
             }
-
-            _logService.Log("加载配置文件", "成功", folder);
+            // 加载成功日志由 _onFolderLoaded（MainForm）记录，避免重复
         }
 
         public string GetDefaultPath()
