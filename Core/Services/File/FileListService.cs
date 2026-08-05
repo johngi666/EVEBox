@@ -101,7 +101,7 @@ namespace EVESyncTool.Core.Services.File
             Action<int, string> onNameReceived)
         {
             var result = new Dictionary<string, string>();
-            int batchSize = 10;
+            int batchSize = 20;
 
             var idsToQuery = new List<string>();
             foreach (var id in ids)
