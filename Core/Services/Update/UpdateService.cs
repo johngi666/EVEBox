@@ -75,11 +75,9 @@ namespace EVESyncTool.Core.Services.Update
                                 await DownloadAndInstallUpdateAsync(remoteVersion, downloadUrl);
                             }
                         }));
-                        _logAction?.Invoke("版本检查", "发现新版本", remoteVersion);
                     }
                     else
                     {
-                        _logAction?.Invoke("版本检查", "已是最新", AppInfo.Version);
                         if (showResultWhenUpToDate)
                         {
                             _owner.Invoke(new Action(() =>
@@ -97,7 +95,6 @@ namespace EVESyncTool.Core.Services.Update
             }
 
             // 所有地址都失败
-            _logAction?.Invoke("版本检查", "失败", lastError ?? "无法连接更新服务器");
             if (showResultWhenUpToDate)
             {
                 _owner.Invoke(new Action(() =>

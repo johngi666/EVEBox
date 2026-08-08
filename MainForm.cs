@@ -63,8 +63,9 @@ namespace EVESyncTool
         private HelpForm _helpForm;
         private LogForm _logForm;
 
-        // 运行期间持续检查更新（每 20 分钟一次，同一版本只提醒一次）
+        // 运行期间检查更新（每分钟一次，最多 10 次后停止）
         private readonly System.Windows.Forms.Timer _updateCheckTimer;
+        private int _updateCheckCount = 1; // 启动立即检查算第 1 次
 
         public string CurrentFolder => _currentFolder;
 
@@ -162,7 +163,17 @@ namespace EVESyncTool
             // 启动时立即检查一次，之后每分钟再查（网络不稳定时尽快捕获到新版本）
             _updateCheckTimer = new System.Windows.Forms.Timer();
             _updateCheckTimer.Interval = 60 * 1000;
-            _updateCheckTimer.Tick += async (s, e) => await _updateService.CheckForUpdatesAsync();
+            _updateCheckTimer.Tick += async (s, e) =>
+            {
+                // 检测满 10 次后停止，直到下次启动
+                if (_updateCheckCount >= 10)
+                {
+                    _updateCheckTimer.Stop();
+                    return;
+                }
+                _updateCheckCount++;
+                await _updateService.CheckForUpdatesAsync();
+            };
             _updateCheckTimer.Start();
             _ = _updateService.CheckForUpdatesAsync();
         }
