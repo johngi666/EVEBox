@@ -1,6 +1,6 @@
 {
-  "version": "v5.48",
-  "downloadUrl": "https://gitee.com/minisangel/EVESyncTool/releases/download/v5.48/EVE配置管理工具_v5.48.zip",
+  "version": "v5.49",
+  "downloadUrl": "https://gitee.com/minisangel/EVESyncTool/releases/download/v5.49/EVE配置管理工具_v5.49.zip",
   "url": "https://github.com/johngi666/EVESyncTool/releases/latest",
-  "notes": "标题栏按钮位置调整（右移100px）、操作日志不再记录在线人数（避免刷屏）"
+  "notes": "标题栏按钮位置调整（右移100px）、操作日志不再记录在线人数、修复加载配置日志重复、角色名查询批次10→20、版本检查不记日志、添加MIT许可证"
 }
