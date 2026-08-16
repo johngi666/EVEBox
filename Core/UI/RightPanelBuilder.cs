@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EVESyncTool.Core.Services.File;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -463,7 +464,9 @@ namespace EVESyncTool.Core.UI
             var row = grid.Rows[e.RowIndex];
             if (row.Tag == null) return;
 
-            string userId = row.Tag.ToString();
+            string userId = (row.Tag as UserFileItem)?.UserId;
+            if (string.IsNullOrEmpty(userId)) return;
+
             string newRemark = grid.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString()?.Trim() ?? "";
 
             UserRemarkEdited?.Invoke(this, new UserRemarkEditEventArgs(userId, newRemark));
@@ -481,7 +484,9 @@ namespace EVESyncTool.Core.UI
             var row = grid.Rows[e.RowIndex];
             if (row.Tag == null) return;
 
-            string userId = row.Tag.ToString();
+            string userId = (row.Tag as UserFileItem)?.UserId;
+            if (string.IsNullOrEmpty(userId)) return;
+
             string displayText = row.Cells[e.ColumnIndex].Value?.ToString() ?? userId;
 
             if (displayText != userId)
@@ -515,7 +520,8 @@ namespace EVESyncTool.Core.UI
         {
             foreach (DataGridViewRow row in _dgvUserFiles.Rows)
             {
-                if (row.Tag != null && row.Tag.ToString() == userId)
+                var item = row.Tag as UserFileItem;
+                if (item != null && item.UserId == userId)
                 {
                     row.Cells[0].Value = string.IsNullOrWhiteSpace(remark) ? userId : remark;
                     break;
@@ -527,9 +533,10 @@ namespace EVESyncTool.Core.UI
         {
             foreach (DataGridViewRow row in _dgvUserFiles.Rows)
             {
-                if (row.Tag != null)
+                var item = row.Tag as UserFileItem;
+                if (item != null)
                 {
-                    string userId = row.Tag.ToString();
+                    string userId = item.UserId;
                     if (remarks != null && remarks.TryGetValue(userId, out string remark) && !string.IsNullOrWhiteSpace(remark))
                     {
                         row.Cells[0].Value = remark;

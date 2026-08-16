@@ -128,9 +128,6 @@ namespace EVESyncTool
                 _backupService,
                 _syncService,
                 () => _currentFolder,
-                () => _userFileItems,
-                () => _charFileItems,
-                () => _backupItems,
                 (item) => ShowUserSyncDialog((UserFileItem)item),
                 (item) => ShowCharSyncDialog((CharacterFileItem)item)
             );
@@ -260,9 +257,9 @@ namespace EVESyncTool
             // ★★★ 绑定用户备注编辑事件 ★★★
             _rightPanel.UserRemarkEdited += OnUserRemarkEdited;
 
-            _rightPanel.DgvUserFiles.CellClick += (s, e) => _dataGridViewHandler.OnUserFileCellClick(e);
-            _rightPanel.DgvCharFiles.CellClick += (s, e) => _dataGridViewHandler.OnCharFileCellClick(e);
-            _rightPanel.DgvBackups.CellClick += (s, e) => _dataGridViewHandler.OnBackupCellClick(e);
+            _rightPanel.DgvUserFiles.CellClick += (s, e) => _dataGridViewHandler.OnUserFileCellClick(s as DataGridView, e);
+            _rightPanel.DgvCharFiles.CellClick += (s, e) => _dataGridViewHandler.OnCharFileCellClick(s as DataGridView, e);
+            _rightPanel.DgvBackups.CellClick += (s, e) => _dataGridViewHandler.OnBackupCellClick(s as DataGridView, e);
         }
 
         // ===== 用户备注编辑事件处理 =====
@@ -361,10 +358,10 @@ namespace EVESyncTool
                             "📂"
                         );
 
-                        // ★★★ 存储用户ID到行Tag ★★★
+                        // ★★★ 存储数据项到行Tag（排序后仍能对应到正确文件）★★★
                         if (rowIndex >= 0)
                         {
-                            _rightPanel.DgvUserFiles.Rows[rowIndex].Tag = item.UserId;
+                            _rightPanel.DgvUserFiles.Rows[rowIndex].Tag = item;
                         }
                     }
                 },
@@ -374,13 +371,19 @@ namespace EVESyncTool
                     _rightPanel.DgvCharFiles.Rows.Clear();
                     foreach (var item in items)
                     {
-                        _rightPanel.DgvCharFiles.Rows.Add(
+                        int rowIndex = _rightPanel.DgvCharFiles.Rows.Add(
                             item.CharacterName ?? item.CharacterId,
                             item.CharacterId,
                             item.ModifyTime.ToString("MM-dd HH:mm"),
                             "💾",
                             "📂"
                         );
+
+                        // ★★★ 存储数据项到行Tag（排序后仍能对应到正确文件）★★★
+                        if (rowIndex >= 0)
+                        {
+                            _rightPanel.DgvCharFiles.Rows[rowIndex].Tag = item;
+                        }
                     }
                 },
                 (userCount, charCount, backupCount) =>
@@ -401,13 +404,19 @@ namespace EVESyncTool
                     _rightPanel.DgvBackups.Rows.Clear();
                     foreach (var item in items)
                     {
-                        _rightPanel.DgvBackups.Rows.Add(
+                        int rowIndex = _rightPanel.DgvBackups.Rows.Add(
                             item.DisplayName,
                             item.CreatedAt.ToString("MM-dd HH:mm"),
                             "📂",
                             "↩️",
                             "🗑️"
                         );
+
+                        // ★★★ 存储数据项到行Tag（排序后仍能对应到正确备份）★★★
+                        if (rowIndex >= 0)
+                        {
+                            _rightPanel.DgvBackups.Rows[rowIndex].Tag = item;
+                        }
                     }
                 },
                 new FileSyncManager()

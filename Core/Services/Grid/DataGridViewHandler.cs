@@ -12,9 +12,6 @@ namespace EVESyncTool.Core.Services.Grid
         private readonly BackupService _backupService;
         private readonly SyncService _syncService;
         private readonly Func<string> _getCurrentFolder;
-        private readonly Func<List<UserFileItem>> _getUserFileItems;
-        private readonly Func<List<CharacterFileItem>> _getCharFileItems;
-        private readonly Func<List<BackupItem>> _getBackupItems;
         private readonly Action<UserFileItem> _showUserSyncDialog;
         private readonly Action<CharacterFileItem> _showCharSyncDialog;
 
@@ -22,30 +19,24 @@ namespace EVESyncTool.Core.Services.Grid
             BackupService backupService,
             SyncService syncService,
             Func<string> getCurrentFolder,
-            Func<List<UserFileItem>> getUserFileItems,
-            Func<List<CharacterFileItem>> getCharFileItems,
-            Func<List<BackupItem>> getBackupItems,
             Action<UserFileItem> showUserSyncDialog,
             Action<CharacterFileItem> showCharSyncDialog)
         {
             _backupService = backupService;
             _syncService = syncService;
             _getCurrentFolder = getCurrentFolder;
-            _getUserFileItems = getUserFileItems;
-            _getCharFileItems = getCharFileItems;
-            _getBackupItems = getBackupItems;
             _showUserSyncDialog = showUserSyncDialog;
             _showCharSyncDialog = showCharSyncDialog;
         }
 
-        public void OnUserFileCellClick(DataGridViewCellEventArgs e)
+        public void OnUserFileCellClick(DataGridView grid, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0 || e.ColumnIndex < 2) return;
 
-            var items = _getUserFileItems?.Invoke();
-            if (items == null || e.RowIndex >= items.Count) return;
-
-            var item = items[e.RowIndex];
+            // ★★★ 从行Tag取数据项（列表排序后行号≠列表下标，不能用索引取）★★★
+            var row = grid?.Rows[e.RowIndex];
+            var item = row?.Tag as UserFileItem;
+            if (item == null) return;
 
             if (e.ColumnIndex == 2)
             {
@@ -57,14 +48,14 @@ namespace EVESyncTool.Core.Services.Grid
             }
         }
 
-        public void OnCharFileCellClick(DataGridViewCellEventArgs e)
+        public void OnCharFileCellClick(DataGridView grid, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0 || e.ColumnIndex < 3) return;
 
-            var items = _getCharFileItems?.Invoke();
-            if (items == null || e.RowIndex >= items.Count) return;
-
-            var item = items[e.RowIndex];
+            // ★★★ 从行Tag取数据项（列表排序后行号≠列表下标，不能用索引取）★★★
+            var row = grid?.Rows[e.RowIndex];
+            var item = row?.Tag as CharacterFileItem;
+            if (item == null) return;
 
             if (e.ColumnIndex == 3)
             {
@@ -76,14 +67,14 @@ namespace EVESyncTool.Core.Services.Grid
             }
         }
 
-        public void OnBackupCellClick(DataGridViewCellEventArgs e)
+        public void OnBackupCellClick(DataGridView grid, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0 || e.ColumnIndex < 2) return;
 
-            var items = _getBackupItems?.Invoke();
-            if (items == null || e.RowIndex >= items.Count) return;
-
-            var item = items[e.RowIndex];
+            // ★★★ 从行Tag取数据项（列表排序后行号≠列表下标，不能用索引取）★★★
+            var row = grid?.Rows[e.RowIndex];
+            var item = row?.Tag as BackupItem;
+            if (item == null) return;
 
             if (e.ColumnIndex == 2)
             {

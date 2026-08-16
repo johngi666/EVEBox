@@ -8,23 +8,18 @@ namespace EVESyncTool.Core
         /// <summary>
         /// 当前版本号（发布时修改此处即可）
         /// </summary>
-        public const string Version = "v5.49";
+        public const string Version = "v5.50";
 
         /// <summary>
         /// 更新内容（每行用 \n 换行）
         /// </summary>
         public const string ReleaseNotes =
-            "   - 标题栏按钮位置调整（右移100px），最小宽度1050防重叠\n" +
-            "   - 操作日志不再记录服务器在线人数（避免刷屏）\n" +
-            "   - 修复加载配置文件时日志重复记录\n" +
-            "   - 角色名查询批次大小 10→20（查询间隔不变）\n" +
-            "   - 版本检查不再写入日志，每分钟最多检测10次后停止\n" +
-            "   - 项目添加 MIT 开源许可证";
+            "   - 修复用户/角色文件单独备份与同步按钮错位（列表排序后点A行实际操作B文件）";
 
         /// <summary>
         /// 更新日期
         /// </summary>
-        public const string ReleaseDate = "2026年8月8日";
+        public const string ReleaseDate = "2026年8月17日";
 
         /// <summary>
         /// 远端版本检查地址列表（按顺序尝试，哪个能访问用哪个）
