@@ -20,6 +20,7 @@ using EVESyncTool.Dialogs.Sync;
 using EVESyncTool.Core.Config;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -364,6 +365,9 @@ namespace EVESyncTool
                             _rightPanel.DgvUserFiles.Rows[rowIndex].Tag = item;
                         }
                     }
+
+                    // ★★★ 默认按修改时间递减排序（覆盖上次手动排序状态）★★★
+                    _rightPanel.DgvUserFiles.Sort(_rightPanel.DgvUserFiles.Columns[1], ListSortDirection.Descending);
                 },
                 (grid, items) =>
                 {
@@ -385,6 +389,9 @@ namespace EVESyncTool
                             _rightPanel.DgvCharFiles.Rows[rowIndex].Tag = item;
                         }
                     }
+
+                    // ★★★ 默认按修改时间递减排序（覆盖上次手动排序状态）★★★
+                    _rightPanel.DgvCharFiles.Sort(_rightPanel.DgvCharFiles.Columns[2], ListSortDirection.Descending);
                 },
                 (userCount, charCount, backupCount) =>
                 {
@@ -591,8 +598,17 @@ namespace EVESyncTool
 
         private void ApplyTheme(bool isDark)
         {
-            _titleBarBuilder.ApplyTheme(isDark);
-            ThemeManager.ApplyToForm(this);
+            // ★★★ 禁用重绘块：标题栏和主体颜色一次性应用、一次性重绘，避免切换闪烁 ★★★
+            ThemeManager.BeginThemeUpdate(this);
+            try
+            {
+                _titleBarBuilder.ApplyTheme(isDark);
+                ThemeManager.ApplyCore(this);
+            }
+            finally
+            {
+                ThemeManager.EndThemeUpdate(this);
+            }
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)

@@ -80,7 +80,9 @@ namespace EVESyncTool.Core.Services.File
                 }
             }
 
-            return (users, chars);
+            // ★★★ 默认按修改时间递减排序（最新在前）★★★
+            return (users.OrderByDescending(u => u.ModifyTime).ToList(),
+                    chars.OrderByDescending(c => c.ModifyTime).ToList());
         }
 
         public string GetUserDisplayName(string userId)

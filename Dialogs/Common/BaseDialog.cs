@@ -82,6 +82,22 @@ namespace EVESyncTool.Dialogs.Common
             ThemeManager.ApplyToForm(this);
             ApplyTitleBarStyle();
             UpdateTitlePosition();
+
+            // ★★★ 订阅主题切换：主窗体切换明暗时，已打开的弹窗同步刷新（无需关闭重开）★★★
+            ThemeManager.ThemeChanged += OnThemeChanged;
+        }
+
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            ThemeManager.ThemeChanged -= OnThemeChanged;
+            base.OnFormClosed(e);
+        }
+
+        private void OnThemeChanged(bool dark)
+        {
+            if (this.IsDisposed) return;
+            ThemeManager.ApplyToForm(this);
+            ApplyTitleBarStyle();
         }
 
         /// <summary>

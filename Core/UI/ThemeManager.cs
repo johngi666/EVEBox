@@ -21,6 +21,11 @@ namespace EVESyncTool.Core.UI
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         private static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
 
+        [DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+        private const int WM_SETREDRAW = 0x000B;
+
         private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
         public static bool IsDarkMode { get; private set; } = false;
@@ -79,8 +84,48 @@ namespace EVESyncTool.Core.UI
 
         /// <summary>
         /// 将当前主题应用到整个窗体（主窗体与所有弹窗通用）
+        /// 整个应用过程在“禁用重绘”块内完成，全部颜色改完后一次性重绘，避免逐控件变色造成的闪烁
         /// </summary>
         public static void ApplyToForm(Form form)
+        {
+            if (form == null) return;
+            BeginThemeUpdate(form);
+            try
+            {
+                ApplyCore(form);
+            }
+            finally
+            {
+                EndThemeUpdate(form);
+            }
+        }
+
+        /// <summary>
+        /// 开始批量主题更新：禁用窗体重绘并挂起布局（配合 ApplyCore/EndThemeUpdate 使用）
+        /// </summary>
+        public static void BeginThemeUpdate(Form form)
+        {
+            if (form == null) return;
+            SendMessage(form.Handle, WM_SETREDRAW, IntPtr.Zero, IntPtr.Zero);
+            form.SuspendLayout();
+        }
+
+        /// <summary>
+        /// 结束批量主题更新：恢复重绘并整窗一次性刷新
+        /// </summary>
+        public static void EndThemeUpdate(Form form)
+        {
+            if (form == null) return;
+            form.ResumeLayout(true);
+            SendMessage(form.Handle, WM_SETREDRAW, (IntPtr)1, IntPtr.Zero);
+            form.Invalidate(true);
+            form.Update();
+        }
+
+        /// <summary>
+        /// 仅应用颜色（不管理重绘状态），供 BeginThemeUpdate/EndThemeUpdate 包裹使用
+        /// </summary>
+        public static void ApplyCore(Form form)
         {
             if (form == null) return;
             form.BackColor = Bg;

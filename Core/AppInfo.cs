@@ -8,13 +8,15 @@ namespace EVESyncTool.Core
         /// <summary>
         /// 当前版本号（发布时修改此处即可）
         /// </summary>
-        public const string Version = "v5.50";
+        public const string Version = "v5.51";
 
         /// <summary>
         /// 更新内容（每行用 \n 换行）
         /// </summary>
         public const string ReleaseNotes =
-            "   - 修复用户/角色文件单独备份与同步按钮错位（列表排序后点A行实际操作B文件）";
+            "   - 主题切换不再闪烁（一次性重绘，告别逐控件刷屏）\n" +
+            "   - 使用说明/操作日志等弹窗打开状态下也随主题同步切换\n" +
+            "   - 用户/角色文件列表默认按修改时间倒序排列（最新在前）";
 
         /// <summary>
         /// 更新日期
