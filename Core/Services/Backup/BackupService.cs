@@ -18,6 +18,7 @@ namespace EVESyncTool.Core.Services.Backup
         private readonly Func<string> _getCurrentFolder;
         private readonly Action<Action> _invokeOnUI;
         private readonly Action _refreshBackupList;
+        private readonly Action _refreshFileList;
 
         public BackupService(
             FileSyncManager fileSyncManager,
@@ -25,7 +26,8 @@ namespace EVESyncTool.Core.Services.Backup
             ConfigManager configManager,
             Func<string> getCurrentFolder,
             Action<Action> invokeOnUI,
-            Action refreshBackupList)
+            Action refreshBackupList,
+            Action refreshFileList = null)
         {
             _fileSyncManager = fileSyncManager;
             _logService = logService;
@@ -33,6 +35,7 @@ namespace EVESyncTool.Core.Services.Backup
             _getCurrentFolder = getCurrentFolder;
             _invokeOnUI = invokeOnUI;
             _refreshBackupList = refreshBackupList;
+            _refreshFileList = refreshFileList;
         }
 
         public void PerformBackup()
@@ -106,6 +109,8 @@ namespace EVESyncTool.Core.Services.Backup
                         _fileSyncManager.CopyDirectory(item.Path, currentFolder);
                     }
                     _refreshBackupList?.Invoke();
+                    // ★★★ 还原后刷新文件列表（用户/角色表格立即反映还原结果）★★★
+                    _refreshFileList?.Invoke();
                     CustomMessageBox.Show("还原完成", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     _logService.Log("还原备份", "成功", item.Name);
                 }

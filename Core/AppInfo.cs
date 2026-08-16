@@ -8,15 +8,14 @@ namespace EVESyncTool.Core
         /// <summary>
         /// 当前版本号（发布时修改此处即可）
         /// </summary>
-        public const string Version = "v5.51";
+        public const string Version = "v5.52";
 
         /// <summary>
         /// 更新内容（每行用 \n 换行）
         /// </summary>
         public const string ReleaseNotes =
-            "   - 主题切换不再闪烁（一次性重绘，告别逐控件刷屏）\n" +
-            "   - 使用说明/操作日志等弹窗打开状态下也随主题同步切换\n" +
-            "   - 用户/角色文件列表默认按修改时间倒序排列（最新在前）";
+            "   - 修复备份管理计数不更新（备份/删除后立即显示真实数量）\n" +
+            "   - 备份还原后自动刷新文件列表（用户/角色表格立即反映还原结果）";
 
         /// <summary>
         /// 更新日期

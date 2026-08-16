@@ -1,6 +1,6 @@
 {
-  "version": "v5.51",
-  "downloadUrl": "https://gitee.com/minisangel/EVESyncTool/releases/download/v5.51/EVE配置管理工具_v5.51.zip",
+  "version": "v5.52",
+  "downloadUrl": "https://gitee.com/minisangel/EVESyncTool/releases/download/v5.52/EVE配置管理工具_v5.52.zip",
   "url": "https://github.com/johngi666/EVESyncTool/releases/latest",
-  "notes": "主题切换不再闪烁、弹窗主题实时跟随、用户/角色文件默认按修改时间倒序"
+  "notes": "修复备份管理计数不更新、备份还原后自动刷新文件列表"
 }

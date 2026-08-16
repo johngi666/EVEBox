@@ -113,7 +113,8 @@ namespace EVESyncTool
                 _configManager,
                 () => _currentFolder,
                 action => action.Invoke(),
-                () => RefreshBackupList()
+                () => RefreshBackupList(),
+                () => { _ = RefreshFileListAsync(); }
             );
 
             _syncService = new SyncService(
@@ -408,6 +409,8 @@ namespace EVESyncTool
                 (grid, items) =>
                 {
                     _backupItems = items;
+                    // ★★★ 同步更新标题计数（备份/删除后立即反映真实数量）★★★
+                    _rightPanel.LblBackupTitle.Text = $"备份管理 ({items.Count}个备份)";
                     _rightPanel.DgvBackups.Rows.Clear();
                     foreach (var item in items)
                     {

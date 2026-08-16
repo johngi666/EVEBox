@@ -154,7 +154,8 @@ namespace EVESyncTool.Core.Services.File
             Action<DataGridView, List<BackupItem>> updateBackupGrid,
             FileSyncManager fileSyncManager)
         {
-            var backups = fileSyncManager.GetBackupFolders();
+            // ★★★ 使用配置的备份路径（与写入保持一致，避免自定义路径时读空）★★★
+            var backups = fileSyncManager.GetBackupFolders(_configManager.GetBackupPath());
 
             _backupItems.Clear();
             foreach (var backup in backups.OrderByDescending(b => b.CreatedAt))
