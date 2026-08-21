@@ -1,6 +1,6 @@
 {
-  "version": "v5.52",
-  "downloadUrl": "https://gitee.com/minisangel/EVESyncTool/releases/download/v5.52/EVE配置管理工具_v5.52.zip",
+  "version": "v5.53",
+  "downloadUrl": "https://gitee.com/minisangel/EVESyncTool/releases/download/v5.53/EVE配置管理工具_v5.53.zip",
   "url": "https://github.com/johngi666/EVESyncTool/releases/latest",
-  "notes": "修复备份管理计数不更新、备份还原后自动刷新文件列表"
+  "notes": "更换应用图标"
 }
