@@ -97,6 +97,9 @@ namespace EVESyncTool.Core.Services.Backup
 
             if (result == DialogResult.Yes)
             {
+                // ★★★ 检测 EVE 客户端（还原会覆盖文件）★★★
+                EveClientGuard.EnsureNoClient();
+
                 try
                 {
                     if (item.IsFile)

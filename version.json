@@ -1,6 +1,6 @@
 {
-  "version": "v5.53",
-  "downloadUrl": "https://gitee.com/minisangel/EVESyncTool/releases/download/v5.53/EVE配置管理工具_v5.53.zip",
+  "version": "v5.54",
+  "downloadUrl": "https://gitee.com/minisangel/EVESyncTool/releases/download/v5.54/EVE配置管理工具_v5.54.zip",
   "url": "https://github.com/johngi666/EVESyncTool/releases/latest",
-  "notes": "更换应用图标"
+  "notes": "新增全局舰船标签显示开关、EVE客户端运行检测（一键关闭/取消操作）、左侧界面优化"
 }

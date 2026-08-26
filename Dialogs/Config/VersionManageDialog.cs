@@ -1,4 +1,5 @@
 ﻿using EVESyncTool.Core.Config;
+using EVESyncTool.Core.Services;
 using EVESyncTool.Core.UI;
 using EVESyncTool.Core.Config;
 using EVESyncTool.Dialogs.Common;
@@ -188,6 +189,9 @@ namespace EVESyncTool.Dialogs.Config
 
             if (result != DialogResult.Yes) return;
 
+            // ★★★ 检测 EVE 客户端（切换方案会覆盖文件）；选"否"则取消操作 ★★★
+            if (!EveClientGuard.EnsureNoClient()) return;
+
             try
             {
                 CopyDirectoryContents(scheme.FolderPath, _parentFolder);
@@ -219,6 +223,9 @@ namespace EVESyncTool.Dialogs.Config
                 $"将父文件夹配置更新到 [{scheme.Name}]？",
                 "确认更新", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (result != DialogResult.Yes) return;
+
+            // ★★★ 检测 EVE 客户端（更新方案会写入文件）；选"否"则取消操作 ★★★
+            if (!EveClientGuard.EnsureNoClient()) return;
 
             Task.Run(() =>
             {
@@ -284,6 +291,9 @@ namespace EVESyncTool.Dialogs.Config
                 $"将备份还原到 [{scheme.Name}]？\n这将覆盖目标文件夹中的所有文件。",
                 "确认还原", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (result != DialogResult.Yes) return;
+
+            // ★★★ 检测 EVE 客户端（还原会覆盖文件）；选"否"则取消操作 ★★★
+            if (!EveClientGuard.EnsureNoClient()) return;
 
             Task.Run(() =>
             {

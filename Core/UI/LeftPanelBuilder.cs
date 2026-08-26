@@ -18,6 +18,7 @@ namespace EVESyncTool.Core.UI
         private readonly Button _btnBackup;
         private readonly Button _btnDeleteAllBackups;
         private readonly Button _btnSync;
+        private readonly Button _btnShipTag;
 
         // 服务器状态标签（供外部访问）
         private readonly Label _lblInfinityStatus;
@@ -32,6 +33,7 @@ namespace EVESyncTool.Core.UI
         public Button BtnBackup => _btnBackup;
         public Button BtnDeleteAllBackups => _btnDeleteAllBackups;
         public Button BtnSync => _btnSync;
+        public Button BtnShipTag => _btnShipTag;
         public Label LblInfinityStatus => _lblInfinityStatus;
         public Label LblSerenityStatus => _lblSerenityStatus;
         public Label LblTranquilityStatus => _lblTranquilityStatus;
@@ -182,7 +184,8 @@ namespace EVESyncTool.Core.UI
             };
             _panel.Controls.Add(separator3);
 
-            y += 20;
+            // 分割线与标题间距（收紧10px后再上移5px）；标题与人数行保持宽松间距
+            y += 5;
 
             // ===== 服务器状态 =====
             Label lblServerStatusTitle = new Label
@@ -195,7 +198,8 @@ namespace EVESyncTool.Core.UI
             };
             _panel.Controls.Add(lblServerStatusTitle);
 
-            y += 28;
+            // 标题与人数显示锚定（人数区上移5px，标题不动）
+            y += 23;
 
             _lblInfinityStatus = new Label
             {
@@ -207,7 +211,7 @@ namespace EVESyncTool.Core.UI
             };
             _panel.Controls.Add(_lblInfinityStatus);
 
-            y += 24;
+            y += 20;
 
             _lblSerenityStatus = new Label
             {
@@ -219,7 +223,7 @@ namespace EVESyncTool.Core.UI
             };
             _panel.Controls.Add(_lblSerenityStatus);
 
-            y += 24;
+            y += 20;
 
             _lblTranquilityStatus = new Label
             {
@@ -231,9 +235,14 @@ namespace EVESyncTool.Core.UI
             };
             _panel.Controls.Add(_lblTranquilityStatus);
 
+            // 按钮前间距（+5px 补偿人数上移，保证按钮位置不变）
             y += 24;
 
-            y += 15;
+            // ===== 全局舰船标签显示开关 =====
+            _btnShipTag = CreateStyledButton("🛰️ 全局舰船标签显示:关闭", 15, y, 190, Color.FromArgb(70, 130, 180));
+            _panel.Controls.Add(_btnShipTag);
+
+            y += 45;
 
             Panel separator4 = new Panel
             {

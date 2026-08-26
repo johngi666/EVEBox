@@ -548,6 +548,69 @@ namespace EVESyncTool.Core.Services.File
 
         #region 工具方法
 
+        /// <summary>
+        /// 检查 prefs.ini 中是否已开启舰船标签显示（bracketsAlwaysShowShipText=1）
+        /// </summary>
+        public bool IsShipTagEnabled(string folder)
+        {
+            if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
+                return false;
+
+            string iniPath = Path.Combine(folder, "prefs.ini");
+            if (!System.IO.File.Exists(iniPath))
+                return false;
+
+            foreach (string line in System.IO.File.ReadAllLines(iniPath))
+            {
+                string trimmed = line.Trim();
+                if (trimmed.StartsWith("bracketsAlwaysShowShipText", StringComparison.OrdinalIgnoreCase))
+                {
+                    int eq = trimmed.IndexOf('=');
+                    if (eq >= 0 && trimmed.Substring(eq + 1).Trim() == "1")
+                        return true;
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 设置 prefs.ini 的舰船标签显示开关（1开/0关）
+        /// 已存在该键则更新值，不存在则在文件最顶部插入（不重复添加）
+        /// </summary>
+        public void SetShipTag(string folder, bool enabled)
+        {
+            if (string.IsNullOrEmpty(folder))
+                return;
+
+            string iniPath = Path.Combine(folder, "prefs.ini");
+            string value = enabled ? "1" : "0";
+            string newLine = "bracketsAlwaysShowShipText=" + value;
+
+            if (!System.IO.File.Exists(iniPath))
+            {
+                // 文件不存在：创建并写入
+                System.IO.File.WriteAllText(iniPath, newLine + Environment.NewLine);
+                return;
+            }
+
+            var lines = System.IO.File.ReadAllLines(iniPath).ToList();
+            int index = lines.FindIndex(l =>
+                l.TrimStart().StartsWith("bracketsAlwaysShowShipText", StringComparison.OrdinalIgnoreCase));
+
+            if (index >= 0)
+            {
+                lines[index] = newLine;
+            }
+            else
+            {
+                // ★★★ 最上面一排插入 ★★★
+                lines.Insert(0, newLine);
+            }
+
+            System.IO.File.WriteAllLines(iniPath, lines);
+        }
+
         public void CopyDirectory(string sourceDir, string destDir, bool overwrite = true)
         {
             if (!Directory.Exists(destDir))

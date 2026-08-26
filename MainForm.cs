@@ -42,6 +42,7 @@ namespace EVESyncTool
         private readonly BackupService _backupService;
         private readonly SyncService _syncService;
         private readonly DataGridViewHandler _dataGridViewHandler;
+        private readonly FileSyncManager _fileSyncManager;
         private readonly ServerStatusManager _serverStatusManager;
         private readonly UpdateDownloader _updateDownloader;
         private readonly UpdateService _updateService;
@@ -90,6 +91,7 @@ namespace EVESyncTool
             );
 
             var fileSyncManager = new FileSyncManager();
+            _fileSyncManager = fileSyncManager;
 
             _fileListRefreshService = new FileListRefreshService(
                 _fileListService,
@@ -228,6 +230,7 @@ namespace EVESyncTool
             };
 
             _leftPanel.BtnOpenFolder.Click += (s, e) => _folderService.OpenCurrentFolder();
+            _leftPanel.BtnShipTag.Click += BtnShipTag_Click;
             _leftPanel.BtnLoadDefault.Click += async (s, e) => await _folderService.LoadDefaultFolderAsync();
             _leftPanel.BtnSelectFolder.Click += async (s, e) => await _folderService.ManualSelectFolderAsync(this);
             _leftPanel.BtnVersionManage.Click += async (s, e) => await OpenVersionManage();
@@ -247,6 +250,9 @@ namespace EVESyncTool
 
                 if (result == DialogResult.Yes)
                 {
+                    // ★★★ 检测 EVE 客户端（修改文件操作）；选"否"则取消操作 ★★★
+                    if (!EveClientGuard.EnsureNoClient()) return;
+
                     await _syncService.SyncAllFilesAsync(
                         () => _currentFolder,
                         (folder) => { _currentFolder = folder; },
@@ -322,6 +328,7 @@ namespace EVESyncTool
 
             await RefreshFileListAsync();
             RefreshBackupList();
+            UpdateShipTagButtonState();
 
             _configManager.Save();
             _logService.Log("加载配置文件", "成功", folder);
@@ -543,6 +550,9 @@ namespace EVESyncTool
                     return;
                 }
 
+                // ★★★ 检测 EVE 客户端（修改文件操作）；选"否"则取消操作 ★★★
+                if (!EveClientGuard.EnsureNoClient()) return;
+
                 int count = _syncService.CopyFileToTargets(sourceFilePath, fileDialog.SelectedTargets, operationName);
                 _ = RefreshFileListAsync();
                 CustomMessageBox.Show($"同步完成，共同步 {count} 个文件", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -593,6 +603,33 @@ namespace EVESyncTool
             _logService.Log("主题切换", "成功", ThemeManager.IsDarkMode ? "夜间模式" : "日间模式");
         }
 
+        // ===== 全局舰船标签显示开关 =====
+        private void BtnShipTag_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(_currentFolder) || !Directory.Exists(_currentFolder))
+            {
+                CustomMessageBox.Show("请先选择有效的EVE配置文件夹", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // ★★★ 修改 prefs.ini 也检测客户端；选"否"则取消操作 ★★★
+            if (!EveClientGuard.EnsureNoClient()) return;
+
+            bool enabled = !_fileSyncManager.IsShipTagEnabled(_currentFolder);
+            _fileSyncManager.SetShipTag(_currentFolder, enabled);
+            UpdateShipTagButtonState();
+            _logService.Log("舰船标签", enabled ? "开启" : "关闭", Path.Combine(_currentFolder, "prefs.ini"));
+        }
+
+        private void UpdateShipTagButtonState()
+        {
+            bool enabled = _fileSyncManager.IsShipTagEnabled(_currentFolder);
+            _leftPanel.BtnShipTag.Text = enabled ? "🛰️ 全局舰船标签显示:开启" : "🛰️ 全局舰船标签显示:关闭";
+            _leftPanel.BtnShipTag.BackColor = enabled
+                ? Color.FromArgb(50, 205, 50)
+                : Color.FromArgb(70, 130, 180);
+        }
+
         private async void BtnCheckUpdate_Click(object sender, EventArgs e)
         {
             _logService.Log("版本检查", "手动触发", "");
@@ -607,6 +644,7 @@ namespace EVESyncTool
             {
                 _titleBarBuilder.ApplyTheme(isDark);
                 ThemeManager.ApplyCore(this);
+                UpdateShipTagButtonState();
             }
             finally
             {
