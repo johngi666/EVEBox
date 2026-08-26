@@ -20,21 +20,4 @@
 		<!-- 排除测试目录，避免被主项目编译 -->
 		<DefaultItemExcludes>$(DefaultItemExcludes);tests\**</DefaultItemExcludes>
 	</PropertyGroup>
-
-	<!-- 确保 marshal_ffi.dll 在发布时被复制 -->
-	<ItemGroup>
-		<Content Include="publish\marshal_ffi.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<Link>marshal_ffi.dll</Link>
-			<Visible>false</Visible>
-		</Content>
-	</ItemGroup>
-
-	<!-- 如果没有 publish\ 目录，直接从项目根目录复制，方便调试 -->
-	<ItemGroup Condition="Exists('marshal_ffi.dll')">
-		<Content Include="marshal_ffi.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<Visible>false</Visible>
-		</Content>
-	</ItemGroup>
 </Project>

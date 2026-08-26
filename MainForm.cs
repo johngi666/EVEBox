@@ -9,6 +9,7 @@ using EVESyncTool.Core.Services.Grid;
 using EVESyncTool.Core.Services.Log;
 using EVESyncTool.Core.Services.ServerStatus;
 using EVESyncTool.Core.Services.Sync;
+using EVESyncTool.Core.Services.Tools;
 using EVESyncTool.Core.Services.Update;
 using EVESyncTool.Core.UI;
 using EVESyncTool.Dialogs;
@@ -42,7 +43,6 @@ namespace EVESyncTool
         private readonly BackupService _backupService;
         private readonly SyncService _syncService;
         private readonly DataGridViewHandler _dataGridViewHandler;
-        private readonly FileSyncManager _fileSyncManager;
         private readonly ServerStatusManager _serverStatusManager;
         private readonly UpdateDownloader _updateDownloader;
         private readonly UpdateService _updateService;
@@ -50,6 +50,29 @@ namespace EVESyncTool
         private readonly LeftPanelBuilder _leftPanel;
         private readonly RightPanelBuilder _rightPanel;
         private readonly TitleBarBuilder _titleBarBuilder;
+        private readonly ConfigSchemeView _schemeView;
+
+        // ===== 标签页内容区 =====
+        private readonly Panel _contentHost = new Panel();
+        private readonly Panel _panelSync = new Panel();
+        private readonly Panel _panelBackup = new Panel();
+        private readonly Panel _panelScheme = new Panel();
+        private readonly Panel _panelHelp = new Panel();
+        private readonly Panel _panelLog = new Panel();
+        private readonly Panel _panelUpdate = new Panel();
+        private readonly Panel _panelTools = new Panel();
+
+        // 配置同步标签控件
+        private readonly ComboBox _cmbServer = new ComboBox();
+        private readonly Button _btnOpenFolder = new Button();
+        private readonly Button _btnLoadDefault = new Button();
+        private readonly Button _btnSelectFolder = new Button();
+        private readonly Button _btnSync = new Button();
+
+        // 更新标签控件
+        private readonly Button _btnCheckUpdate = new Button();
+        private readonly Button _btnGithub = new Button();
+        private readonly Button _btnGitee = new Button();
 
         private static readonly HttpClient _httpClient = new HttpClient
         {
@@ -62,8 +85,9 @@ namespace EVESyncTool
         private List<CharacterFileItem> _charFileItems = new List<CharacterFileItem>();
         private List<BackupItem> _backupItems = new List<BackupItem>();
 
-        private HelpForm _helpForm;
-        private LogForm _logForm;
+        private RichTextBox _rtbLog;
+        private System.Windows.Forms.Timer _logRefreshTimer;
+        private int _lastLogCount;
 
         // 运行期间检查更新（每分钟一次，最多 10 次后停止）
         private readonly System.Windows.Forms.Timer _updateCheckTimer;
@@ -91,7 +115,6 @@ namespace EVESyncTool
             );
 
             var fileSyncManager = new FileSyncManager();
-            _fileSyncManager = fileSyncManager;
 
             _fileListRefreshService = new FileListRefreshService(
                 _fileListService,
@@ -139,6 +162,7 @@ namespace EVESyncTool
             _leftPanel = new LeftPanelBuilder();
             _rightPanel = new RightPanelBuilder();
             _titleBarBuilder = new TitleBarBuilder(this);
+            _schemeView = new ConfigSchemeView(msg => _logService.Log(msg));
 
             InitializeComponent();
 
@@ -155,7 +179,7 @@ namespace EVESyncTool
 
             BindEvents();
 
-            _leftPanel.CmbServer.SelectedItem = _currentServer;
+            _cmbServer.SelectedItem = _currentServer;
 
             _logService.Log("程序启动", "成功", "");
             _ = AutoFindFolderAsync();
@@ -182,19 +206,15 @@ namespace EVESyncTool
         private void InitializeComponent()
         {
             this.Text = "EVE配置管理工具";
-            this.Size = new Size(1100, 588);
-            this.MinimumSize = new Size(1050, 588);
+            this.Size = new Size(950, 588);
+            this.MinimumSize = new Size(950, 588);
             this.FormBorderStyle = FormBorderStyle.None;
             this.StartPosition = FormStartPosition.CenterScreen;
             this.BackColor = Color.FromArgb(240, 248, 255);
 
-            this.Controls.Add(_titleBarBuilder.Build());
-            _titleBarBuilder.BtnHelp.Click += BtnHelp_Click;
-            _titleBarBuilder.BtnLog.Click += BtnLog_Click;
-            _titleBarBuilder.BtnCheckUpdate.Click += BtnCheckUpdate_Click;
-            _titleBarBuilder.BtnTheme.Click += BtnTheme_Click;
-            // 设置按钮已移除
-            // _titleBarBuilder.BtnSettings.Click += BtnSettings_Click;
+            // 注意：WinForms 按 Controls 逆序处理停靠——标题栏必须最后添加，
+            // 否则 Dock=Fill 的内容区先占满全屏，标题栏会覆盖在内容区顶部
+            BuildTabPanels();
 
             TableLayoutPanel mainContainer = new TableLayoutPanel
             {
@@ -205,13 +225,20 @@ namespace EVESyncTool
                 Margin = new Padding(15, 0, 15, 0),
                 Location = new Point(0, 35)
             };
-            mainContainer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 260));
+            mainContainer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 180));
             mainContainer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
 
             mainContainer.Controls.Add(_leftPanel.Build(), 0, 0);
-            mainContainer.Controls.Add(_rightPanel.Build(), 1, 0);
+            mainContainer.Controls.Add(_contentHost, 1, 0);
 
             this.Controls.Add(mainContainer);
+            this.Controls.Add(_titleBarBuilder.Build());
+            _leftPanel.BtnTheme.Click += BtnTheme_Click;
+            _leftPanel.BtnShipTag.Click += BtnShipTag_Click;
+
+            // ★★★ 标签切换 ★★★
+            _leftPanel.TabSelected += OnTabSelected;
+            ShowTab(LeftPanelBuilder.TabSync);
 
             this.FormClosing += (s, e) =>
             {
@@ -221,24 +248,265 @@ namespace EVESyncTool
             };
         }
 
+        /// <summary>
+        /// 构建 7 个标签页内容面板
+        /// </summary>
+        private void BuildTabPanels()
+        {
+            // ===== 配置同步：顶部工具条 + 用户/角色表格 =====
+            _panelSync.Dock = DockStyle.Fill;
+            _panelSync.BackColor = Color.White;
+
+            FlowLayoutPanel syncTop = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                Height = 44,
+                Padding = new Padding(6, 3, 6, 3),
+                BackColor = Color.FromArgb(248, 250, 252)
+            };
+
+            Label lblServer = new Label
+            {
+                Text = "服务器:",
+                AutoSize = true,
+                Font = new Font("Microsoft YaHei", 12, FontStyle.Bold),
+                ForeColor = Color.FromArgb(70, 130, 180),
+                Margin = new Padding(0, 13, 0, 0)
+            };
+            syncTop.Controls.Add(lblServer);
+
+            _cmbServer.DropDownStyle = ComboBoxStyle.DropDownList;
+            _cmbServer.Font = new Font("Microsoft YaHei", 10);
+            _cmbServer.Size = new Size(150, 36);
+            _cmbServer.Margin = new Padding(0, 10, 10, 0);
+            _cmbServer.Items.AddRange(new object[] { "曙光服 (Infinity)", "晨曦服 (Serenity)", "国际服 (Tranquility)" });
+            syncTop.Controls.Add(_cmbServer);
+
+            syncTop.Controls.Add(CreateTabButton(_btnOpenFolder, "未识别到可用配置", Color.FromArgb(70, 130, 180), Color.White, 150));
+            syncTop.Controls.Add(CreateTabButton(_btnLoadDefault, "默认配置路径", Color.FromArgb(70, 130, 180), Color.White, 110));
+            syncTop.Controls.Add(CreateTabButton(_btnSelectFolder, "手动选择文件夹", Color.FromArgb(70, 130, 180), Color.White, 120));
+            syncTop.Controls.Add(CreateTabButton(_btnSync, "快捷覆盖", Color.FromArgb(50, 205, 50), Color.White, 100));
+
+            // ★★★ Dock 逆序规则：先放 Top 内容，后放 Top 工具条（否则工具条盖住内容）★★★
+            // 框体高度减小：同步面板固定高度，不再占满整个标签页
+            Panel syncPanel = _rightPanel.BuildSyncPanel();
+            syncPanel.Dock = DockStyle.Top;
+            syncPanel.Height = 505;
+            _panelSync.Controls.Add(syncPanel);
+            _panelSync.Controls.Add(syncTop);
+
+            // ===== 备份管理：顶部按钮 + 备份表格 =====
+            _panelBackup.Dock = DockStyle.Fill;
+            _panelBackup.BackColor = Color.White;
+
+            // 顶部操作条：左右分布（同配置方案页布局/参数，仅颜色保留备份页原色）
+            Panel backupTop = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 50,
+                BackColor = Color.White,
+                Padding = new Padding(10, 8, 10, 8)
+            };
+
+            // 左侧：备份当前配置（参数对齐配置方案页按钮，颜色保留原绿色，事件直接绑定）
+            Button btnBackupNow = new Button
+            {
+                Text = "💾 备份当前配置",
+                Size = new Size(150, 34),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = Color.FromArgb(50, 205, 50),
+                ForeColor = Color.White,
+                Font = new Font("Microsoft YaHei", 9, FontStyle.Bold),
+                Cursor = Cursors.Hand,
+                Dock = DockStyle.Left
+            };
+            btnBackupNow.FlatAppearance.BorderSize = 0;
+            btnBackupNow.Click += (s, e) => _backupService.PerformBackup();
+
+            // 右侧：删除所有备份（参数对齐配置方案页按钮，颜色保留原橙色，事件直接绑定）
+            Button btnDeleteAll = new Button
+            {
+                Text = "🗑️ 删除所有备份",
+                Size = new Size(150, 34),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = Color.FromArgb(255, 69, 0),
+                ForeColor = Color.White,
+                Font = new Font("Microsoft YaHei", 9, FontStyle.Bold),
+                Cursor = Cursors.Hand,
+                Dock = DockStyle.Right
+            };
+            btnDeleteAll.FlatAppearance.BorderSize = 0;
+            btnDeleteAll.Click += (s, e) => _backupService.DeleteAllBackups();
+
+            // ★★★ Dock 逆序：标题 Fill 最先 Add，按钮 Left/Right 后停靠（标题居中填两按钮间）★★★
+            backupTop.Controls.Add(_rightPanel.LblBackupTitle);
+            backupTop.Controls.Add(btnBackupNow);
+            backupTop.Controls.Add(btnDeleteAll);
+
+            // ★★★ Dock 逆序规则：先放 Top 内容，后放 Top 工具条 ★★★
+            // 框体高度减小：备份面板固定高度，不再占满整个标签页
+            Panel backupPanel = _rightPanel.BuildBackupPanel();
+            backupPanel.Dock = DockStyle.Top;
+            backupPanel.Height = 495;
+            _panelBackup.Controls.Add(backupPanel);
+            _panelBackup.Controls.Add(backupTop);
+
+            // ===== 配置方案：UserControl 嵌入 =====
+            _panelScheme.Dock = DockStyle.Fill;
+            _panelScheme.BackColor = Color.White;
+            // ★★★ 外层不再设 Padding：按钮条与备份页一样贴边；列表框体的左右下边距在 ConfigSchemeView 内单独处理 ★★★
+            _schemeView.Dock = DockStyle.Fill;
+            _schemeView.OnSchemesChanged += async () => await RefreshFileListAsync();
+            _panelScheme.Controls.Add(_schemeView);
+
+            // ===== 使用说明：RichTextBox 显示说明文本 =====
+            _panelHelp.Dock = DockStyle.Fill;
+            _panelHelp.BackColor = Color.White;
+            _panelHelp.Padding = new Padding(10);
+
+            RichTextBox rtbHelp = new RichTextBox
+            {
+                Dock = DockStyle.Fill,
+                ReadOnly = true,
+                Font = new Font("Microsoft YaHei", 9),
+                BackColor = Color.FromArgb(248, 248, 248),
+                BorderStyle = BorderStyle.Fixed3D
+            };
+            rtbHelp.Text = EVESyncTool.Dialogs.Info.HelpText.Content;
+            _panelHelp.Controls.Add(rtbHelp);
+
+            // ===== 操作日志：RichTextBox + 定时刷新 =====
+            _panelLog.Dock = DockStyle.Fill;
+            _panelLog.BackColor = Color.White;
+            _panelLog.Padding = new Padding(10);
+
+            _rtbLog = new RichTextBox
+            {
+                Dock = DockStyle.Fill,
+                ReadOnly = true,
+                Font = new Font("Consolas", 9),
+                BackColor = Color.FromArgb(248, 248, 248),
+                BorderStyle = BorderStyle.Fixed3D
+            };
+            _panelLog.Controls.Add(_rtbLog);
+
+            _logRefreshTimer = new System.Windows.Forms.Timer();
+            _logRefreshTimer.Interval = 500;
+            _logRefreshTimer.Tick += (s, e) => AppendNewLogs();
+            _logRefreshTimer.Start();
+
+            // ===== 更新：检查更新 + GitHub + Gitee =====
+            _panelUpdate.Dock = DockStyle.Fill;
+            _panelUpdate.BackColor = Color.White;
+
+            FlowLayoutPanel updatePanel = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                Height = 60,
+                Padding = new Padding(10, 12, 10, 10),
+                BackColor = Color.White
+            };
+            updatePanel.Controls.Add(CreateTabButton(_btnCheckUpdate, "🔍 检查更新", Color.FromArgb(70, 130, 180), Color.White, 120));
+            updatePanel.Controls.Add(CreateTabButton(_btnGithub, "🐙 GitHub", Color.FromArgb(36, 41, 46), Color.White, 110));
+            updatePanel.Controls.Add(CreateTabButton(_btnGitee, "🚩 Gitee", Color.FromArgb(199, 29, 35), Color.White, 100));
+
+            // 版本信息（当前版本/更新内容/更新日期）
+            RichTextBox rtbVersion = new RichTextBox
+            {
+                Dock = DockStyle.Fill,
+                ReadOnly = true,
+                Font = new Font("Microsoft YaHei", 10),
+                BackColor = Color.White,
+                BorderStyle = BorderStyle.None
+            };
+            rtbVersion.Text =
+                $"当前版本：{AppInfo.Version}\n\n" +
+                "更新内容：\n" +
+                $"{AppInfo.ReleaseNotes}\n\n" +
+                $"更新日期：{AppInfo.ReleaseDate}";
+
+            // ★★★ Dock 逆序规则：先放 Fill 内容，后放 Top 按钮条 ★★★
+            _panelUpdate.Controls.Add(rtbVersion);
+            _panelUpdate.Controls.Add(updatePanel);
+
+            // ===== 工具：预留 =====
+            _panelTools.Dock = DockStyle.Fill;
+            _panelTools.BackColor = Color.White;
+
+            // ★★★ 舰船标签按钮已移至左栏（主题按钮上方），工具页仅保留占位 ★★★
+            _panelTools.Controls.Add(CreatePlaceholderLabel("更多工具功能将在这里添加，敬请期待！"));
+
+            _contentHost.Dock = DockStyle.Fill;
+            _contentHost.BackColor = Color.White;
+            _contentHost.Controls.AddRange(new Control[]
+            {
+                _panelSync, _panelBackup, _panelScheme, _panelHelp, _panelLog, _panelUpdate, _panelTools
+            });
+        }
+
+        /// <summary>
+        /// 标签切换：只显示当前标签面板
+        /// </summary>
+        private void OnTabSelected(int index)
+        {
+            ShowTab(index);
+        }
+
+        private void ShowTab(int index)
+        {
+            // ★★★ 切换时挂起布局，避免表格/工具条重新排布产生刷新闪烁动画 ★★★
+            _contentHost.SuspendLayout();
+            _panelSync.Visible = index == LeftPanelBuilder.TabSync;
+            _panelBackup.Visible = index == LeftPanelBuilder.TabBackup;
+            _panelScheme.Visible = index == LeftPanelBuilder.TabScheme;
+            _panelHelp.Visible = index == LeftPanelBuilder.TabHelp;
+            _panelLog.Visible = index == LeftPanelBuilder.TabLog;
+            _panelUpdate.Visible = index == LeftPanelBuilder.TabUpdate;
+            _panelTools.Visible = index == LeftPanelBuilder.TabTools;
+            _contentHost.ResumeLayout();
+        }
+
+        private Button CreateTabButton(Button btn, string text, Color backColor, Color foreColor, int width)
+        {
+            btn.Text = text;
+            btn.Size = new Size(width, 36);
+            btn.FlatStyle = FlatStyle.Flat;
+            btn.BackColor = backColor;
+            btn.ForeColor = foreColor;
+            btn.Font = new Font("Microsoft YaHei", 9, FontStyle.Bold);
+            btn.Cursor = Cursors.Hand;
+            btn.FlatAppearance.BorderSize = 0;
+            btn.Margin = new Padding(2, 6, 6, 0);
+            return btn;
+        }
+
+        private Label CreatePlaceholderLabel(string text)
+        {
+            return new Label
+            {
+                Text = text,
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Font = new Font("Microsoft YaHei", 11),
+                ForeColor = Color.FromArgb(148, 163, 184)
+            };
+        }
+
         private void BindEvents()
         {
-            _leftPanel.CmbServer.SelectedIndexChanged += async (s, e) =>
+            // ===== 配置同步标签 =====
+            _cmbServer.SelectedIndexChanged += async (s, e) =>
             {
-                string newServer = _leftPanel.CmbServer.SelectedItem?.ToString() ?? "曙光服 (Infinity)";
+                string newServer = _cmbServer.SelectedItem?.ToString() ?? "曙光服 (Infinity)";
                 await OnServerChanged(newServer);
             };
 
-            _leftPanel.BtnOpenFolder.Click += (s, e) => _folderService.OpenCurrentFolder();
-            _leftPanel.BtnShipTag.Click += BtnShipTag_Click;
-            _leftPanel.BtnLoadDefault.Click += async (s, e) => await _folderService.LoadDefaultFolderAsync();
-            _leftPanel.BtnSelectFolder.Click += async (s, e) => await _folderService.ManualSelectFolderAsync(this);
-            _leftPanel.BtnVersionManage.Click += async (s, e) => await OpenVersionManage();
-            _leftPanel.BtnBackup.Click += (s, e) => _backupService.PerformBackup();
-            _leftPanel.BtnDeleteAllBackups.Click += (s, e) => _backupService.DeleteAllBackups();
+            _btnOpenFolder.Click += (s, e) => _folderService.OpenCurrentFolder();
+            _btnLoadDefault.Click += async (s, e) => await _folderService.LoadDefaultFolderAsync();
+            _btnSelectFolder.Click += async (s, e) => await _folderService.ManualSelectFolderAsync(this);
 
             // 快捷覆盖
-            _leftPanel.BtnSync.Click += async (s, e) =>
+            _btnSync.Click += async (s, e) =>
             {
                 var result = CustomMessageBox.Show(
                     "确定要执行快捷覆盖吗？\n\n" +
@@ -262,12 +530,31 @@ namespace EVESyncTool
                 }
             };
 
+            // ===== 备份管理标签（按钮事件已在 BuildTabPanels 内直接绑定）=====
+
+            // ===== 更新标签 =====
+            _btnCheckUpdate.Click += BtnCheckUpdate_Click;
+            _btnGithub.Click += (s, e) => OpenUrl("https://github.com/johngi666/EVESyncTool");
+            _btnGitee.Click += (s, e) => OpenUrl("https://gitee.com/minisangel/EVESyncTool");
+
             // ★★★ 绑定用户备注编辑事件 ★★★
             _rightPanel.UserRemarkEdited += OnUserRemarkEdited;
 
             _rightPanel.DgvUserFiles.CellClick += (s, e) => _dataGridViewHandler.OnUserFileCellClick(s as DataGridView, e);
             _rightPanel.DgvCharFiles.CellClick += (s, e) => _dataGridViewHandler.OnCharFileCellClick(s as DataGridView, e);
             _rightPanel.DgvBackups.CellClick += (s, e) => _dataGridViewHandler.OnBackupCellClick(s as DataGridView, e);
+        }
+
+        private static void OpenUrl(string url)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
+            }
+            catch
+            {
+                // 忽略打开失败
+            }
         }
 
         // ===== 用户备注编辑事件处理 =====
@@ -313,8 +600,8 @@ namespace EVESyncTool
 
         private async Task AutoFindFolderAsync()
         {
-            _leftPanel.BtnOpenFolder.Text = "正在查找...";
-            _leftPanel.BtnOpenFolder.Enabled = false;
+            _btnOpenFolder.Text = "正在查找...";
+            _btnOpenFolder.Enabled = false;
 
             await _folderService.AutoFindFolderAsync(() => { });
 
@@ -329,6 +616,7 @@ namespace EVESyncTool
             await RefreshFileListAsync();
             RefreshBackupList();
             UpdateShipTagButtonState();
+            _schemeView?.SetParentFolder(folder);
 
             _configManager.Save();
             _logService.Log("加载配置文件", "成功", folder);
@@ -338,8 +626,8 @@ namespace EVESyncTool
         {
             _folderService.UpdateFolderButtonState((text, enabled) =>
             {
-                _leftPanel.BtnOpenFolder.Text = text;
-                _leftPanel.BtnOpenFolder.Enabled = enabled;
+                _btnOpenFolder.Text = text;
+                _btnOpenFolder.Enabled = enabled;
             });
         }
 
@@ -450,7 +738,7 @@ namespace EVESyncTool
                 switch (choice)
                 {
                     case SearchFailDialog.UserChoice.SwitchServer:
-                        CustomMessageBox.Show("请从左侧下拉框选择其他服务器", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        CustomMessageBox.Show("请切换到「配置同步」页，在服务器下拉框选择其他服务器", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         break;
                     case SearchFailDialog.UserChoice.DeepSearch:
                         _ = _folderService.DeepSearchAndLoadAsync(this);
@@ -463,23 +751,6 @@ namespace EVESyncTool
                         break;
                 }
             }
-        }
-
-        private async Task OpenVersionManage()
-        {
-            if (string.IsNullOrEmpty(_currentFolder) || !System.IO.Directory.Exists(_currentFolder))
-            {
-                CustomMessageBox.Show("请先选择有效的EVE配置文件夹", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            using (var dialog = new VersionManageDialog(_currentFolder, (msg) => _logService.Log(msg)))
-            {
-                dialog.OnSchemesChanged += async () => await RefreshFileListAsync();
-                dialog.ShowDialog(this);
-            }
-
-            _logService.Log("打开配置方案管理", "成功", "");
         }
 
         private void ShowUserSyncDialog(UserFileItem sourceItem)
@@ -559,42 +830,6 @@ namespace EVESyncTool
             }
         }
 
-        private void BtnHelp_Click(object sender, EventArgs e)
-        {
-            if (_helpForm == null || _helpForm.IsDisposed)
-            {
-                _helpForm = new HelpForm();
-                _helpForm.Owner = this;
-                _helpForm.FormClosed += (s, args) => _helpForm = null;
-                _helpForm.Show();
-                _logService.Log("打开使用说明", "成功", "");
-            }
-            else
-            {
-                _helpForm.Close();
-                _helpForm = null;
-                _logService.Log("关闭使用说明窗口", "成功", "");
-            }
-        }
-
-        private void BtnLog_Click(object sender, EventArgs e)
-        {
-            if (_logForm == null || _logForm.IsDisposed)
-            {
-                _logForm = new LogForm(_logService.GetLogs().ToList());
-                _logForm.Owner = this;
-                _logForm.FormClosed += (s, args) => _logForm = null;
-                _logForm.Show();
-                _logService.Log("查看操作日志", "成功", "");
-            }
-            else
-            {
-                _logForm.Close();
-                _logForm = null;
-                _logService.Log("关闭操作日志窗口", "成功", "");
-            }
-        }
-
         private void BtnTheme_Click(object sender, EventArgs e)
         {
             ThemeManager.Toggle();
@@ -615,16 +850,16 @@ namespace EVESyncTool
             // ★★★ 修改 prefs.ini 也检测客户端；选"否"则取消操作 ★★★
             if (!EveClientGuard.EnsureNoClient()) return;
 
-            bool enabled = !_fileSyncManager.IsShipTagEnabled(_currentFolder);
-            _fileSyncManager.SetShipTag(_currentFolder, enabled);
+            bool enabled = !ShipTagTool.IsEnabled(_currentFolder);
+            ShipTagTool.SetEnabled(_currentFolder, enabled);
             UpdateShipTagButtonState();
             _logService.Log("舰船标签", enabled ? "开启" : "关闭", Path.Combine(_currentFolder, "prefs.ini"));
         }
 
         private void UpdateShipTagButtonState()
         {
-            bool enabled = _fileSyncManager.IsShipTagEnabled(_currentFolder);
-            _leftPanel.BtnShipTag.Text = enabled ? "🛰️ 全局舰船标签显示:开启" : "🛰️ 全局舰船标签显示:关闭";
+            bool enabled = ShipTagTool.IsEnabled(_currentFolder);
+            _leftPanel.BtnShipTag.Text = enabled ? "舰船标签:开启" : "舰船标签:关闭";
             _leftPanel.BtnShipTag.BackColor = enabled
                 ? Color.FromArgb(50, 205, 50)
                 : Color.FromArgb(70, 130, 180);
@@ -644,6 +879,13 @@ namespace EVESyncTool
             {
                 _titleBarBuilder.ApplyTheme(isDark);
                 ThemeManager.ApplyCore(this);
+                // ★★★ 主题按钮：显示夜间模式→按钮暗黑色；显示日间模式→按钮太阳光色（金黄）；文字白色 ★★★
+                // 放在 ApplyCore 之后，避免被蓝色→Accent 逻辑覆盖
+                _leftPanel.BtnTheme.Text = isDark ? "☀️日间模式" : "🌙夜间模式";
+                _leftPanel.BtnTheme.BackColor = isDark
+                    ? Color.FromArgb(255, 170, 0)   // 太阳光色（显示日间模式时）
+                    : Color.FromArgb(40, 40, 40);   // 暗黑色（显示夜间模式时）
+                _leftPanel.BtnTheme.ForeColor = Color.White;
                 UpdateShipTagButtonState();
             }
             finally
@@ -652,15 +894,40 @@ namespace EVESyncTool
             }
         }
 
+        /// <summary>
+        /// 追加操作日志面板的新日志（定时器驱动）
+        /// </summary>
+        private void AppendNewLogs()
+        {
+            if (_rtbLog == null || _rtbLog.IsDisposed) return;
+
+            var logs = _logService.GetLogs();
+            int currentCount = logs.Count;
+            if (currentCount > _lastLogCount)
+            {
+                for (int i = _lastLogCount; i < currentCount; i++)
+                {
+                    if (_rtbLog.Text.Length > 0)
+                        _rtbLog.AppendText(Environment.NewLine);
+                    _rtbLog.AppendText(logs[i]);
+                }
+                _rtbLog.SelectionStart = _rtbLog.Text.Length;
+                _rtbLog.ScrollToCaret();
+                _lastLogCount = currentCount;
+            }
+        }
+
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
             switch (keyData)
             {
                 case Keys.F1:
-                    BtnHelp_Click(null, null);
+                    _leftPanel.SelectTab(LeftPanelBuilder.TabHelp);
+                    ShowTab(LeftPanelBuilder.TabHelp);
                     return true;
                 case Keys.F2:
-                    BtnLog_Click(null, null);
+                    _leftPanel.SelectTab(LeftPanelBuilder.TabLog);
+                    ShowTab(LeftPanelBuilder.TabLog);
                     return true;
                 default:
                     return base.ProcessCmdKey(ref msg, keyData);

@@ -153,81 +153,6 @@ namespace EVESyncTool.Core.Services.File
 
         #endregion
 
-        #region 部分覆盖
-
-        public async Task<bool> ApplyPartialOverwriteAsync(
-            string sourceDatPath,
-            string targetDatPath,
-            List<SettingItem> selectedSettings,
-            Action<string> logAction = null)
-        {
-            if (selectedSettings == null || selectedSettings.Count == 0)
-            {
-                logAction?.Invoke("错误: 未选择任何设置项");
-                return false;
-            }
-
-            try
-            {
-                if (!System.IO.File.Exists(sourceDatPath))
-                {
-                    logAction?.Invoke($"错误: 源文件不存在 {sourceDatPath}");
-                    return false;
-                }
-                if (!System.IO.File.Exists(targetDatPath))
-                {
-                    logAction?.Invoke($"错误: 目标文件不存在 {targetDatPath}");
-                    return false;
-                }
-
-                logAction?.Invoke($"开始部分覆盖，共 {selectedSettings.Count} 类设置");
-                logAction?.Invoke($"  源文件: {Path.GetFileName(sourceDatPath)}");
-                logAction?.Invoke($"  目标文件: {Path.GetFileName(targetDatPath)}");
-
-                string sourceJson = _marshalService.ReadDatAsJson(sourceDatPath);
-                string targetJson = _marshalService.ReadDatAsJson(targetDatPath);
-
-                using var sourceDoc = JsonDocument.Parse(sourceJson);
-                using var targetDoc = JsonDocument.Parse(targetJson);
-
-                var modifications = new Dictionary<string, object>();
-                int foundCount = 0;
-
-                foreach (var setting in selectedSettings)
-                {
-                    if (TryGetValueByPath(sourceDoc.RootElement, setting.JsonPath, out JsonElement sourceValue))
-                    {
-                        modifications[setting.JsonPath] = ConvertJsonElementToObject(sourceValue);
-                        foundCount++;
-                        logAction?.Invoke($"    找到: {setting.DisplayName} → {setting.JsonPath}");
-                    }
-                    else
-                    {
-                        logAction?.Invoke($"    未找到: {setting.DisplayName} → {setting.JsonPath}");
-                    }
-                }
-
-                if (modifications.Count == 0)
-                {
-                    logAction?.Invoke("  错误: 未在源文件中找到任何匹配的字段");
-                    return false;
-                }
-
-                logAction?.Invoke($"  成功提取 {modifications.Count} 个字段");
-
-                string modifiedTargetJson = ApplyModificationsToJson(targetJson, modifications);
-                _marshalService.WriteJsonAsDat(modifiedTargetJson, targetDatPath);
-
-                logAction?.Invoke($"部分覆盖完成，共覆盖 {modifications.Count} 类设置");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                logAction?.Invoke($"  错误: {ex.Message}");
-                return false;
-            }
-        }
-
         public async Task<bool> SyncSingleFileAsync(string sourcePath, string targetPath, Action<string> logAction = null)
         {
             try
@@ -267,8 +192,6 @@ namespace EVESyncTool.Core.Services.File
         {
             _marshalService.EncodeFromFile(jsonPath, datPath);
         }
-
-        #endregion
 
         #region 备份管理
 
@@ -547,69 +470,6 @@ namespace EVESyncTool.Core.Services.File
         #endregion
 
         #region 工具方法
-
-        /// <summary>
-        /// 检查 prefs.ini 中是否已开启舰船标签显示（bracketsAlwaysShowShipText=1）
-        /// </summary>
-        public bool IsShipTagEnabled(string folder)
-        {
-            if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
-                return false;
-
-            string iniPath = Path.Combine(folder, "prefs.ini");
-            if (!System.IO.File.Exists(iniPath))
-                return false;
-
-            foreach (string line in System.IO.File.ReadAllLines(iniPath))
-            {
-                string trimmed = line.Trim();
-                if (trimmed.StartsWith("bracketsAlwaysShowShipText", StringComparison.OrdinalIgnoreCase))
-                {
-                    int eq = trimmed.IndexOf('=');
-                    if (eq >= 0 && trimmed.Substring(eq + 1).Trim() == "1")
-                        return true;
-                    return false;
-                }
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// 设置 prefs.ini 的舰船标签显示开关（1开/0关）
-        /// 已存在该键则更新值，不存在则在文件最顶部插入（不重复添加）
-        /// </summary>
-        public void SetShipTag(string folder, bool enabled)
-        {
-            if (string.IsNullOrEmpty(folder))
-                return;
-
-            string iniPath = Path.Combine(folder, "prefs.ini");
-            string value = enabled ? "1" : "0";
-            string newLine = "bracketsAlwaysShowShipText=" + value;
-
-            if (!System.IO.File.Exists(iniPath))
-            {
-                // 文件不存在：创建并写入
-                System.IO.File.WriteAllText(iniPath, newLine + Environment.NewLine);
-                return;
-            }
-
-            var lines = System.IO.File.ReadAllLines(iniPath).ToList();
-            int index = lines.FindIndex(l =>
-                l.TrimStart().StartsWith("bracketsAlwaysShowShipText", StringComparison.OrdinalIgnoreCase));
-
-            if (index >= 0)
-            {
-                lines[index] = newLine;
-            }
-            else
-            {
-                // ★★★ 最上面一排插入 ★★★
-                lines.Insert(0, newLine);
-            }
-
-            System.IO.File.WriteAllLines(iniPath, lines);
-        }
 
         public void CopyDirectory(string sourceDir, string destDir, bool overwrite = true)
         {

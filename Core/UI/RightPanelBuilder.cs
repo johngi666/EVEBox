@@ -1,5 +1,4 @@
-﻿using EVESyncTool.Core.Services.File;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -8,10 +7,12 @@ namespace EVESyncTool.Core.UI
 {
     /// <summary>
     /// 右侧面板构建器（用户文件、备份管理、角色文件）
+    /// 按标签页拆分为 partial：本文件为公共结构 + 构造函数，其余见各分部文件
     /// </summary>
-    public class RightPanelBuilder
+    public partial class RightPanelBuilder
     {
-        private readonly Panel _panel;
+        private readonly Panel _syncPanel;
+        private readonly Panel _backupPanel;
 
         // 用户文件列表
         private DataGridView _dgvUserFiles;
@@ -59,499 +60,73 @@ namespace EVESyncTool.Core.UI
 
         public RightPanelBuilder()
         {
-            _panel = new Panel
+            // ===== 配置同步面板：用户文件（左） | 角色文件（右） =====
+            Panel userPanel = CreateUserFilePanel();
+            Panel charPanel = CreateCharFilePanel();
+
+            _syncPanel = new Panel
             {
                 Dock = DockStyle.Fill,
                 Padding = new Padding(10, 10, 10, 10),
                 BackColor = Color.White
             };
 
-            TableLayoutPanel rightContainer = new TableLayoutPanel
+            TableLayoutPanel syncContainer = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 2,
                 RowCount = 1,
                 BackColor = Color.Transparent
             };
-            rightContainer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 370));
-            rightContainer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 640));
+            syncContainer.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 320));
+            syncContainer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            syncContainer.Controls.Add(userPanel, 0, 0);
+            syncContainer.Controls.Add(charPanel, 1, 0);
 
-            // ===== 左侧：用户 + 备份 =====
-            Panel leftColumn = new Panel
-            {
-                Dock = DockStyle.Fill,
-                Padding = new Padding(0, 0, 10, 0),
-                BackColor = Color.White
-            };
+            _syncPanel.Controls.Add(syncContainer);
 
-            TableLayoutPanel leftColumnContainer = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                ColumnCount = 1,
-                RowCount = 2,
-                BackColor = Color.Transparent
-            };
-            leftColumnContainer.RowStyles.Add(new RowStyle(SizeType.Absolute, 300));
-            leftColumnContainer.RowStyles.Add(new RowStyle(SizeType.Absolute, 300));
-
-            Panel userPanel = CreateUserFilePanel();
-            leftColumnContainer.Controls.Add(userPanel, 0, 0);
-
+            // ===== 备份管理面板：备份表格 =====
             Panel backupPanel = CreateBackupPanel();
-            leftColumnContainer.Controls.Add(backupPanel, 0, 1);
 
-            leftColumn.Controls.Add(leftColumnContainer);
-
-            // ===== 右侧：角色文件 =====
-            Panel charPanel = CreateCharFilePanel();
-
-            rightContainer.Controls.Add(leftColumn, 0, 0);
-            rightContainer.Controls.Add(charPanel, 1, 0);
-
-            _panel.Controls.Add(rightContainer);
-        }
-
-        private Panel CreateUserFilePanel()
-        {
-            Panel panel = new Panel
+            _backupPanel = new Panel
             {
                 Dock = DockStyle.Fill,
-                Padding = new Padding(0, 0, 0, 5),
+                Padding = new Padding(10, 10, 10, 10),
                 BackColor = Color.White
             };
+            _backupPanel.Controls.Add(backupPanel);
 
-            _lblUserTitle = new Label
-            {
-                Text = "用户配置文件 (0个文件)",
-                Font = new Font("Microsoft YaHei", 12, FontStyle.Bold),
-                ForeColor = Color.FromArgb(70, 130, 180),
-                AutoSize = true,
-                Location = new Point(0, 20)
-            };
-
-            _dgvUserFiles = new DataGridView
-            {
-                Location = new Point(0, 48),
-                Size = new Size(panel.Width - 10, 245),
-                BorderStyle = BorderStyle.Fixed3D,
-                BackgroundColor = Color.FromArgb(248, 248, 248),
-                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
-                AllowUserToAddRows = false,
-                AllowUserToDeleteRows = false,
-                AllowUserToResizeRows = false,
-                AllowUserToResizeColumns = false,
-                RowHeadersVisible = false,
-                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                ReadOnly = false,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None,
-                ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing,
-                Font = new Font("Microsoft YaHei", 9),
-                ScrollBars = ScrollBars.Vertical,
-                CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal,
-                EnableHeadersVisualStyles = false,
-                ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None,
-                ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
-                {
-                    Alignment = DataGridViewContentAlignment.MiddleCenter,
-                    Font = new Font("Microsoft YaHei", 10, FontStyle.Bold),
-                    BackColor = Color.FromArgb(240, 248, 255),
-                    ForeColor = Color.Black,
-                    SelectionBackColor = Color.FromArgb(240, 248, 255),
-                    SelectionForeColor = Color.Black
-                }
-            };
-
-            // ===== 用户ID列（可编辑） =====
-            DataGridViewTextBoxColumn colUserId = new DataGridViewTextBoxColumn
-            {
-                HeaderText = "用户ID",
-                Width = 90,
-                DefaultCellStyle = new DataGridViewCellStyle
-                {
-                    Alignment = DataGridViewContentAlignment.MiddleCenter,
-                    BackColor = Color.White
-                },
-                ReadOnly = false
-            };
-
-            DataGridViewTextBoxColumn colUserTime = new DataGridViewTextBoxColumn
-            {
-                HeaderText = "修改时间",
-                Width = 90,
-                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter },
-                ReadOnly = true
-            };
-            DataGridViewButtonColumn colUserBackup = new DataGridViewButtonColumn
-            {
-                HeaderText = "备份",
-                Width = 67,
-                Text = "💾",
-                UseColumnTextForButtonValue = true,
-                FlatStyle = FlatStyle.Flat,
-                ReadOnly = true
-            };
-            DataGridViewButtonColumn colUserSync = new DataGridViewButtonColumn
-            {
-                HeaderText = "同步",
-                Width = 68,
-                Text = "📂",
-                UseColumnTextForButtonValue = true,
-                FlatStyle = FlatStyle.Flat,
-                ReadOnly = true
-            };
-
-            _dgvUserFiles.Columns.Add(colUserId);
-            _dgvUserFiles.Columns.Add(colUserTime);
-            _dgvUserFiles.Columns.Add(colUserBackup);
-            _dgvUserFiles.Columns.Add(colUserSync);
-
-            // ===== 用户ID列双击编辑事件 =====
-            _dgvUserFiles.CellDoubleClick += OnUserCellDoubleClick;
-            _dgvUserFiles.CellEndEdit += OnUserCellEndEdit;
-
-            // ===== 鼠标悬停显示原ID =====
-            _dgvUserFiles.CellMouseEnter += OnUserCellMouseEnter;
-            _dgvUserFiles.CellMouseLeave += OnUserCellMouseLeave;
-            _dgvUserFiles.MouseLeave += OnUserFilesMouseLeave;
-
-            panel.Controls.Add(_lblUserTitle);
-            panel.Controls.Add(_dgvUserFiles);
-
-            panel.Resize += (s, e) =>
-            {
-                _dgvUserFiles.Width = panel.Width - 10;
-            };
-
-            return panel;
+            // ★★★ 表格启用双缓冲：消除标签切换/数据刷新时的重绘闪烁动画 ★★★
+            EnableDoubleBuffered(_dgvUserFiles);
+            EnableDoubleBuffered(_dgvCharFiles);
+            EnableDoubleBuffered(_dgvBackups);
         }
 
-        private Panel CreateBackupPanel()
+        /// <summary>
+        /// 通过反射启用 DataGridView 双缓冲（DoubleBuffered 为受保护属性）
+        /// </summary>
+        private static void EnableDoubleBuffered(DataGridView grid)
         {
-            Panel panel = new Panel
-            {
-                Dock = DockStyle.Fill,
-                Padding = new Padding(0, 0, 0, 0),
-                BackColor = Color.White
-            };
-
-            _lblBackupTitle = new Label
-            {
-                Text = "备份管理 (0个备份)",
-                Font = new Font("Microsoft YaHei", 12, FontStyle.Bold),
-                ForeColor = Color.FromArgb(70, 130, 180),
-                AutoSize = true,
-                Location = new Point(0, 00)
-            };
-
-            _dgvBackups = new DataGridView
-            {
-                Location = new Point(0, 28),
-                Size = new Size(panel.Width - 10, 225),
-                BorderStyle = BorderStyle.Fixed3D,
-                BackgroundColor = Color.FromArgb(248, 248, 248),
-                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
-                AllowUserToAddRows = false,
-                AllowUserToDeleteRows = false,
-                AllowUserToResizeRows = false,
-                AllowUserToResizeColumns = false,
-                RowHeadersVisible = false,
-                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                ReadOnly = true,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None,
-                ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing,
-                Font = new Font("Microsoft YaHei", 9),
-                ScrollBars = ScrollBars.Vertical,
-                CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal,
-                EnableHeadersVisualStyles = false,
-                ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None,
-                ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
-                {
-                    Alignment = DataGridViewContentAlignment.MiddleCenter,
-                    Font = new Font("Microsoft YaHei", 10, FontStyle.Bold),
-                    BackColor = Color.FromArgb(240, 248, 255),
-                    ForeColor = Color.Black,
-                    SelectionBackColor = Color.FromArgb(240, 248, 255),
-                    SelectionForeColor = Color.Black
-                }
-            };
-
-            DataGridViewTextBoxColumn colBackupName = new DataGridViewTextBoxColumn
-            {
-                HeaderText = "备份名",
-                Width = 90,
-                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter },
-                ReadOnly = true
-            };
-            DataGridViewTextBoxColumn colBackupTime = new DataGridViewTextBoxColumn
-            {
-                HeaderText = "时间",
-                Width = 90,
-                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter },
-                ReadOnly = true
-            };
-            DataGridViewButtonColumn colBackupShow = new DataGridViewButtonColumn
-            {
-                HeaderText = "显示",
-                Width = 45,
-                Text = "📂",
-                UseColumnTextForButtonValue = true,
-                FlatStyle = FlatStyle.Flat,
-                ReadOnly = true
-            };
-            DataGridViewButtonColumn colBackupRestore = new DataGridViewButtonColumn
-            {
-                HeaderText = "还原",
-                Width = 45,
-                Text = "↩️",
-                UseColumnTextForButtonValue = true,
-                FlatStyle = FlatStyle.Flat,
-                ReadOnly = true
-            };
-            DataGridViewButtonColumn colBackupDelete = new DataGridViewButtonColumn
-            {
-                HeaderText = "删除",
-                Width = 45,
-                Text = "🗑️",
-                UseColumnTextForButtonValue = true,
-                FlatStyle = FlatStyle.Flat,
-                ReadOnly = true
-            };
-
-            _dgvBackups.Columns.Add(colBackupName);
-            _dgvBackups.Columns.Add(colBackupTime);
-            _dgvBackups.Columns.Add(colBackupShow);
-            _dgvBackups.Columns.Add(colBackupRestore);
-            _dgvBackups.Columns.Add(colBackupDelete);
-
-            panel.Controls.Add(_lblBackupTitle);
-            panel.Controls.Add(_dgvBackups);
-
-            panel.Resize += (s, e) =>
-            {
-                _dgvBackups.Width = panel.Width - 10;
-            };
-
-            return panel;
-        }
-
-        private Panel CreateCharFilePanel()
-        {
-            Panel panel = new Panel
-            {
-                Dock = DockStyle.Fill,
-                Padding = new Padding(10, 0, 0, 0),
-                BackColor = Color.White
-            };
-
-            _lblCharTitle = new Label
-            {
-                Text = "角色配置文件 (0个文件)",
-                Font = new Font("Microsoft YaHei", 12, FontStyle.Bold),
-                ForeColor = Color.FromArgb(70, 130, 180),
-                AutoSize = true,
-                Location = new Point(0, 24)
-            };
-
-            _dgvCharFiles = new DataGridView
-            {
-                Location = new Point(0, 50),
-                Size = new Size(panel.Width - 200, 506),
-                BorderStyle = BorderStyle.Fixed3D,
-                BackgroundColor = Color.FromArgb(248, 248, 248),
-                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
-                AllowUserToAddRows = false,
-                AllowUserToDeleteRows = false,
-                AllowUserToResizeRows = false,
-                AllowUserToResizeColumns = false,
-                RowHeadersVisible = false,
-                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                ReadOnly = true,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None,
-                ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing,
-                Font = new Font("Microsoft YaHei", 9),
-                ScrollBars = ScrollBars.Vertical,
-                CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal,
-                EnableHeadersVisualStyles = false,
-                ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None,
-                ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
-                {
-                    Alignment = DataGridViewContentAlignment.MiddleCenter,
-                    Font = new Font("Microsoft YaHei", 10, FontStyle.Bold),
-                    BackColor = Color.FromArgb(240, 248, 255),
-                    ForeColor = Color.Black,
-                    SelectionBackColor = Color.FromArgb(240, 248, 255),
-                    SelectionForeColor = Color.Black
-                }
-            };
-
-            DataGridViewTextBoxColumn colCharName = new DataGridViewTextBoxColumn
-            {
-                HeaderText = "角色名",
-                Width = 130,
-                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter },
-                ReadOnly = true
-            };
-            DataGridViewTextBoxColumn colCharId = new DataGridViewTextBoxColumn
-            {
-                HeaderText = "角色ID",
-                Width = 90,
-                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter },
-                ReadOnly = true
-            };
-            DataGridViewTextBoxColumn colCharTime = new DataGridViewTextBoxColumn
-            {
-                HeaderText = "修改时间",
-                Width = 90,
-                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter },
-                ReadOnly = true
-            };
-            DataGridViewButtonColumn colCharBackup = new DataGridViewButtonColumn
-            {
-                HeaderText = "备份",
-                Width = 50,
-                Text = "💾",
-                UseColumnTextForButtonValue = true,
-                FlatStyle = FlatStyle.Flat,
-                ReadOnly = true
-            };
-            DataGridViewButtonColumn colCharSync = new DataGridViewButtonColumn
-            {
-                HeaderText = "同步",
-                Width = 50,
-                Text = "📂",
-                UseColumnTextForButtonValue = true,
-                FlatStyle = FlatStyle.Flat,
-                ReadOnly = true
-            };
-
-            _dgvCharFiles.Columns.Add(colCharName);
-            _dgvCharFiles.Columns.Add(colCharId);
-            _dgvCharFiles.Columns.Add(colCharTime);
-            _dgvCharFiles.Columns.Add(colCharBackup);
-            _dgvCharFiles.Columns.Add(colCharSync);
-
-            panel.Controls.Add(_lblCharTitle);
-            panel.Controls.Add(_dgvCharFiles);
-
-            panel.Resize += (s, e) =>
-            {
-                _dgvCharFiles.Width = panel.Width - 200;
-            };
-
-            return panel;
-        }
-
-        // ===== 用户备注相关事件处理 =====
-
-        private void OnUserCellDoubleClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0 || e.ColumnIndex != 0) return;
-
-            var grid = sender as DataGridView;
             if (grid == null) return;
-
-            grid.CurrentCell = grid.Rows[e.RowIndex].Cells[e.ColumnIndex];
-            grid.BeginEdit(true);
+            var prop = typeof(Control).GetProperty(
+                "DoubleBuffered",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            prop?.SetValue(grid, true, null);
         }
 
-        private void OnUserCellEndEdit(object sender, DataGridViewCellEventArgs e)
+        public Panel BuildSyncPanel()
         {
-            if (e.RowIndex < 0 || e.ColumnIndex != 0) return;
-
-            var grid = sender as DataGridView;
-            if (grid == null) return;
-
-            var row = grid.Rows[e.RowIndex];
-            if (row.Tag == null) return;
-
-            string userId = (row.Tag as UserFileItem)?.UserId;
-            if (string.IsNullOrEmpty(userId)) return;
-
-            string newRemark = grid.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString()?.Trim() ?? "";
-
-            UserRemarkEdited?.Invoke(this, new UserRemarkEditEventArgs(userId, newRemark));
+            return _syncPanel;
         }
 
-        // ===== 鼠标悬停显示原ID（修复版） =====
-
-        private void OnUserCellMouseEnter(object sender, DataGridViewCellEventArgs e)
+        public Panel BuildBackupPanel()
         {
-            if (e.RowIndex < 0 || e.ColumnIndex != 0) return;
-
-            var grid = sender as DataGridView;
-            if (grid == null) return;
-
-            var row = grid.Rows[e.RowIndex];
-            if (row.Tag == null) return;
-
-            string userId = (row.Tag as UserFileItem)?.UserId;
-            if (string.IsNullOrEmpty(userId)) return;
-
-            string displayText = row.Cells[e.ColumnIndex].Value?.ToString() ?? userId;
-
-            if (displayText != userId)
-            {
-                Point mousePos = grid.PointToClient(Cursor.Position);
-                _userToolTip.Show($"原ID: {userId}", grid, mousePos.X + 15, mousePos.Y - 20, 3000);
-                _hoveredUserId = userId;
-            }
-            else
-            {
-                _userToolTip.Hide(grid);
-                _hoveredUserId = null;
-            }
-        }
-
-        private void OnUserCellMouseLeave(object sender, DataGridViewCellEventArgs e)
-        {
-            _userToolTip.Hide(_dgvUserFiles);
-            _hoveredUserId = null;
-        }
-
-        private void OnUserFilesMouseLeave(object sender, EventArgs e)
-        {
-            _userToolTip.Hide(_dgvUserFiles);
-            _hoveredUserId = null;
-        }
-
-        // ===== 外部调用方法 =====
-
-        public void UpdateUserRemarkDisplay(string userId, string remark)
-        {
-            foreach (DataGridViewRow row in _dgvUserFiles.Rows)
-            {
-                var item = row.Tag as UserFileItem;
-                if (item != null && item.UserId == userId)
-                {
-                    row.Cells[0].Value = string.IsNullOrWhiteSpace(remark) ? userId : remark;
-                    break;
-                }
-            }
-        }
-
-        public void RefreshUserRemarks(Dictionary<string, string> remarks)
-        {
-            foreach (DataGridViewRow row in _dgvUserFiles.Rows)
-            {
-                var item = row.Tag as UserFileItem;
-                if (item != null)
-                {
-                    string userId = item.UserId;
-                    if (remarks != null && remarks.TryGetValue(userId, out string remark) && !string.IsNullOrWhiteSpace(remark))
-                    {
-                        row.Cells[0].Value = remark;
-                    }
-                    else
-                    {
-                        row.Cells[0].Value = userId;
-                    }
-                }
-            }
+            return _backupPanel;
         }
 
         public Panel Build()
         {
-            return _panel;
+            return _syncPanel;
         }
     }
 

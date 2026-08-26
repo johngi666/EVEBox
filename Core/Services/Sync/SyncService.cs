@@ -120,68 +120,26 @@ namespace EVESyncTool.Core.Services.Sync
             var latestUser = userFiles.OrderByDescending(f => System.IO.File.GetLastWriteTime(Path.Combine(currentFolder, f))).FirstOrDefault();
             var latestChar = charFiles.OrderByDescending(f => System.IO.File.GetLastWriteTime(Path.Combine(currentFolder, f))).FirstOrDefault();
 
-            var settings = _configManager.GetSyncSettings();
-
-            if (settings.SelectedPartialSettings == null || settings.SelectedPartialSettings.Count == 0)
+            logAction?.Invoke("开始覆盖操作 - 完整覆盖");
+            try
             {
-                settings.SelectedPartialSettings = SettingMapping.GetAll().Select(s => s.DisplayName).ToList();
-                _configManager.SaveSyncSettings(settings);
+                _fileSyncManager.FullSync(currentFolder, currentFolder, msg => logAction?.Invoke($"同步: {msg}"));
+                await refreshFileList?.Invoke();
+                CustomMessageBox.Show("完整覆盖完成！", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-
-            logAction?.Invoke($"开始覆盖操作 - 使用保存的设置，共 {settings.SelectedPartialSettings.Count} 类");
-
-            bool isFullSync = settings.SelectedPartialSettings.Count >= SettingMapping.GetAll().Count;
-
-            if (isFullSync)
+            catch (IOException ioEx) when (ioEx.Message.Contains("被占用") || ioEx.Message.Contains("used"))
             {
-                logAction?.Invoke("开始覆盖操作 - 完整覆盖");
-                try
-                {
-                    _fileSyncManager.FullSync(currentFolder, currentFolder, msg => logAction?.Invoke($"同步: {msg}"));
-                    await refreshFileList?.Invoke();
-                    CustomMessageBox.Show("完整覆盖完成！", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                catch (IOException ioEx) when (ioEx.Message.Contains("被占用") || ioEx.Message.Contains("used"))
-                {
-                    logAction?.Invoke($"完整覆盖失败: 文件被占用");
-                    CustomMessageBox.Show(
-                        $"覆盖失败！\n\n部分文件被其他程序占用（可能是 EVE 客户端正在运行）。\n请关闭所有 EVE 客户端后重试。\n\n{ioEx.Message}",
-                        "文件被占用",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
-                }
-                catch (Exception ex)
-                {
-                    logAction?.Invoke($"完整覆盖失败: {ex.Message}");
-                    CustomMessageBox.Show($"覆盖失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                logAction?.Invoke($"完整覆盖失败: 文件被占用");
+                CustomMessageBox.Show(
+                    $"覆盖失败！\n\n部分文件被其他程序占用（可能是 EVE 客户端正在运行）。\n请关闭所有 EVE 客户端后重试。\n\n{ioEx.Message}",
+                    "文件被占用",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
             }
-            else
+            catch (Exception ex)
             {
-                // ★★★ 部分覆盖 - 暂时注释掉，全部走完整覆盖 ★★★
-                logAction?.Invoke($"未全选设置（当前 {settings.SelectedPartialSettings.Count}/{SettingMapping.GetAll().Count} 类），临时切换到完整覆盖");
-
-                try
-                {
-                    _fileSyncManager.FullSync(currentFolder, currentFolder, msg => logAction?.Invoke($"同步: {msg}"));
-                    await refreshFileList?.Invoke();
-                    CustomMessageBox.Show($"完整覆盖完成！\n（提示：部分覆盖功能暂时禁用，已自动切换为完整覆盖）",
-                        "完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                catch (IOException ioEx) when (ioEx.Message.Contains("被占用") || ioEx.Message.Contains("used"))
-                {
-                    logAction?.Invoke($"完整覆盖失败: 文件被占用");
-                    CustomMessageBox.Show(
-                        $"覆盖失败！\n\n部分文件被其他程序占用（可能是 EVE 客户端正在运行）。\n请关闭所有 EVE 客户端后重试。\n\n{ioEx.Message}",
-                        "文件被占用",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
-                }
-                catch (Exception ex)
-                {
-                    logAction?.Invoke($"完整覆盖失败: {ex.Message}");
-                    CustomMessageBox.Show($"覆盖失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                logAction?.Invoke($"完整覆盖失败: {ex.Message}");
+                CustomMessageBox.Show($"覆盖失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -207,97 +165,9 @@ namespace EVESyncTool.Core.Services.Sync
             return false;
         }
 
-        /// <summary>
-        /// 部分覆盖 - 暂时禁用，保留方法但不调用
-        /// </summary>
-        private async Task ExecutePartialSync(
-            string currentFolder,
-            string latestUser,
-            string latestChar,
-            List<string> selectedSettings,
-            Action<string> logAction)
-        {
-            logAction?.Invoke("部分覆盖功能暂时禁用，请使用完整覆盖");
-            await Task.CompletedTask;
-        }
-
         #endregion
 
-        #region 部分覆盖同步
-
-        public async Task<bool> ApplyPartialOverwriteAsync(
-            string sourceDatPath,
-            string targetDatPath,
-            List<SettingItem> selectedSettings)
-        {
-            if (selectedSettings == null || selectedSettings.Count == 0)
-            {
-                Log("部分覆盖", "错误", "未选择任何设置项");
-                return false;
-            }
-
-            Log($"部分覆盖开始", "源", Path.GetFileName(sourceDatPath));
-            Log($"部分覆盖开始", "目标", Path.GetFileName(targetDatPath));
-            Log($"部分覆盖", "设置项数量", selectedSettings.Count.ToString());
-
-            var result = await _fileSyncManager.ApplyPartialOverwriteAsync(
-                sourceDatPath,
-                targetDatPath,
-                selectedSettings,
-                msg => Log("部分覆盖", msg, ""));
-
-            Log($"部分覆盖完成", "结果", result ? "成功" : "失败");
-            return result;
-        }
-
-        public async Task<bool> ApplyPartialOverwriteWithCurrentSettingsAsync(
-            string sourceDatPath,
-            string targetDatPath)
-        {
-            var settings = _fieldMappingService.GetSettings();
-            var selectedSettings = GetSelectedSettingsFromCurrentSettings(settings);
-            return await ApplyPartialOverwriteAsync(sourceDatPath, targetDatPath, selectedSettings);
-        }
-
-        #endregion
-
-        #region 设置项获取（部分覆盖预留）
-
-        public List<SettingItem> GetSelectedSettingsFromCurrentSettings(SyncSettings settings)
-        {
-            var allItems = SettingMapping.GetAll();
-            var selected = new List<SettingItem>();
-
-            if (settings.SelectedPartialSettings == null || settings.SelectedPartialSettings.Count == 0)
-            {
-                return allItems;
-            }
-
-            foreach (var item in allItems)
-            {
-                if (settings.SelectedPartialSettings.Contains(item.DisplayName))
-                {
-                    selected.Add(item);
-                }
-            }
-            return selected;
-        }
-
-        public List<SettingItem> GetSelectedSettingsFromCurrent()
-        {
-            var settings = _fieldMappingService.GetSettings();
-            return GetSelectedSettingsFromCurrentSettings(settings);
-        }
-
-        #endregion
-
-        #region 过滤和判断（部分覆盖预留）
-
-        public void RefreshPublicChannelCache()
-        {
-            _fieldMappingService.RefreshPublicChannelNames();
-            Log("刷新缓存", "公共频道", $"已刷新 {_fieldMappingService.GetPublicChannelNames().Count} 个频道");
-        }
+        #region 频道判断（聊天频道过滤基础能力）
 
         public HashSet<string> GetPublicChannelNames()
         {
