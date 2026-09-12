@@ -1,4 +1,4 @@
-using EVEBox.PeiZhi;
+using EVEBox.Common.PeiZhi;
 using Xunit;
 
 

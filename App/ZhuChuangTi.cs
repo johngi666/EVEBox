@@ -1,15 +1,15 @@
-﻿using EVEBox.BeiFen;
-using EVEBox.FuWuQiZhuangTai;
-using EVEBox.GengXin;
-using EVEBox.GongYong;
-using EVEBox.JianChuanBiaoQian;
-using EVEBox.JieMian;
-using EVEBox.PeiZhi;
-using EVEBox.PeiZhiFangAn;
-using EVEBox.PeiZhiTongBu;
-using EVEBox.QiTaGongJu;
-using EVEBox.RiZhi;
-using EVEBox.WenJianJia;
+﻿using EVEBox.Features.BeiFen;
+using EVEBox.Common.FuWuQiZhuangTai;
+using EVEBox.Features.GengXin;
+using EVEBox.Common.GongYong;
+using EVEBox.Features.JianChuanBiaoQian;
+using EVEBox.App;
+using EVEBox.Common.PeiZhi;
+using EVEBox.Features.PeiZhiFangAn;
+using EVEBox.Features.PeiZhiTongBu;
+using EVEBox.OtherTools;
+using EVEBox.Features.RiZhi;
+using EVEBox.Common.WenJianJia;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -365,7 +365,7 @@ namespace EVEBox.App
                 BackColor = Color.FromArgb(248, 248, 248),
                 BorderStyle = BorderStyle.Fixed3D
             };
-            rtbHelp.Text = EVEBox.GongYong.BangZhuWenBen.Content;
+            rtbHelp.Text = EVEBox.Common.GongYong.BangZhuWenBen.Content;
             _panelHelp.Controls.Add(rtbHelp);
 
             // ===== 操作日志：RichTextBox + 定时刷新 =====

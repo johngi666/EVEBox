@@ -1,4 +1,4 @@
-using EVEBox.PeiZhiTongBu;
+using EVEBox.Features.PeiZhiTongBu;
 using System.Text.Json;
 using Xunit;
 

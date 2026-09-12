@@ -1,5 +1,5 @@
-using EVEBox.PeiZhi;
-using EVEBox.PeiZhiTongBu;
+using EVEBox.Common.PeiZhi;
+using EVEBox.Features.PeiZhiTongBu;
 using System.Collections.Generic;
 using Xunit;
 
