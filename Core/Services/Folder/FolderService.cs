@@ -1,15 +1,15 @@
-﻿using EVESyncTool.Core.Config;
-using EVESyncTool.Core.Services.Log;
-using EVESyncTool.Dialogs.Common;
-using EVESyncTool.Dialogs.Info;
-using EVESyncTool.Dialogs.Progress;
+﻿using EVEBox.Core.Config;
+using EVEBox.Core.Services.Log;
+using EVEBox.Dialogs.Common;
+using EVEBox.Dialogs.Info;
+using EVEBox.Dialogs.Progress;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Core.Services.Folder
+namespace EVEBox.Core.Services.Folder
 {
     public class FolderService
     {

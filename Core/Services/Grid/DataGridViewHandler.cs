@@ -1,11 +1,11 @@
-﻿using EVESyncTool.Core.Services.Backup;
-using EVESyncTool.Core.Services.File;
-using EVESyncTool.Core.Services.Sync;
+﻿using EVEBox.Core.Services.Backup;
+using EVEBox.Core.Services.File;
+using EVEBox.Core.Services.Sync;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Core.Services.Grid
+namespace EVEBox.Core.Services.Grid
 {
     public class DataGridViewHandler
     {

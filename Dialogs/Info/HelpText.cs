@@ -1,6 +1,6 @@
-﻿using EVESyncTool.Core;
+﻿using EVEBox.Core;
 
-namespace EVESyncTool.Dialogs.Info
+namespace EVEBox.Dialogs.Info
 {
     /// <summary>
     /// 使用说明文本
@@ -9,7 +9,7 @@ namespace EVESyncTool.Dialogs.Info
     {
         public static string Content = $@"
 ================================================================================
-                                                                         EVE配置管理工具使用说明 
+                                                                         EVE BOX使用说明 
 ================================================================================
                                                                            命运之手-醉晚月出品
 

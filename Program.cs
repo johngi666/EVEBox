@@ -3,11 +3,11 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-namespace EVESyncTool
+namespace EVEBox
 {
     static class Program
     {
-        private const string MutexName = "EVEConfigManager_Instance_Mutex";
+        private const string MutexName = "EVEBox_Instance_Mutex";
         private const int SW_RESTORE = 9;
 
         [DllImport("user32.dll")]
@@ -54,7 +54,7 @@ namespace EVESyncTool
             try
             {
                 // 通过窗口标题查找
-                IntPtr hWnd = FindWindow(null, "EVE配置管理工具");
+                IntPtr hWnd = FindWindow(null, "EVE BOX");
                 if (hWnd != IntPtr.Zero)
                 {
                     // 如果窗口最小化，先还原
@@ -68,7 +68,7 @@ namespace EVESyncTool
                 else
                 {
                     // 备用方案：通过进程名查找
-                    Process[] processes = Process.GetProcessesByName("EVE配置管理工具");
+                    Process[] processes = Process.GetProcessesByName("EVE BOX");
                     if (processes.Length > 0 && processes[0].MainWindowHandle != IntPtr.Zero)
                     {
                         IntPtr handle = processes[0].MainWindowHandle;

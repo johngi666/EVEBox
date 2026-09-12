@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using EVESyncTool.Core.Config;
-using EVESyncTool.Core.Mapping;
-using EVESyncTool.Core.Services.Mapping;
+using EVEBox.Core.Config;
+using EVEBox.Core.Mapping;
+using EVEBox.Core.Services.Mapping;
 using Xunit;
 
-namespace EVESyncTool.Tests;
+namespace EVEBox.Tests;
 
 public class FieldMappingServiceTests
 {

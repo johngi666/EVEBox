@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Core.UI
+namespace EVEBox.Core.UI
 {
     /// <summary>
     /// 右侧面板构建器（用户文件、备份管理、角色文件）

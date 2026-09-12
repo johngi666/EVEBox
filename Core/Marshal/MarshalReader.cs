@@ -3,7 +3,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 
-namespace EVESyncTool.Core.Marshal
+namespace EVEBox.Core.Marshal
 {
     /// <summary>
     /// Marshal 文件读取器

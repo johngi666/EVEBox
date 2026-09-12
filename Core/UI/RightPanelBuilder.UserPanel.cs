@@ -1,10 +1,10 @@
-﻿using EVESyncTool.Core.Services.File;
+﻿using EVEBox.Core.Services.File;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Core.UI
+namespace EVEBox.Core.UI
 {
     /// <summary>
     /// 右侧面板构建器 - 用户配置文件面板（配置同步页左侧）

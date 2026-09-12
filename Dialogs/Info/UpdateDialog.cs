@@ -1,9 +1,9 @@
-using EVESyncTool.Dialogs.Common;
+using EVEBox.Dialogs.Common;
 using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Dialogs.Info
+namespace EVEBox.Dialogs.Info
 {
     /// <summary>
     /// 新版本通知弹窗

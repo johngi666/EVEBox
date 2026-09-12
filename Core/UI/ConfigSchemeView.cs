@@ -1,6 +1,6 @@
-﻿using EVESyncTool.Core.Config;
-using EVESyncTool.Core.Services;
-using EVESyncTool.Dialogs.Common;
+﻿using EVEBox.Core.Config;
+using EVEBox.Core.Services;
+using EVEBox.Dialogs.Common;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Core.UI
+namespace EVEBox.Core.UI
 {
     /// <summary>
     /// 配置方案管理视图（从 VersionManageDialog 迁移为可嵌入标签页的 UserControl）

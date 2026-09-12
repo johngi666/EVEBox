@@ -1,7 +1,7 @@
-using EVESyncTool.Core;
-using EVESyncTool.Dialogs.Common;
-using EVESyncTool.Dialogs.Info;
-using EVESyncTool.Dialogs.Progress;
+using EVEBox.Core;
+using EVEBox.Dialogs.Common;
+using EVEBox.Dialogs.Info;
+using EVEBox.Dialogs.Progress;
 using System;
 using System.IO;
 using System.Linq;
@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Core.Services.Update
+namespace EVEBox.Core.Services.Update
 {
     /// <summary>
     /// 自动更新服务：多源检测新版本 + 程序内下载安装（带进度、自动替换重启）

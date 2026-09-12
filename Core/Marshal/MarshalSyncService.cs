@@ -1,9 +1,9 @@
-using EVESyncTool.Core.Mapping;
+using EVEBox.Core.Mapping;
 using System;
 using System.IO;
 using System.Text.Json;
 
-namespace EVESyncTool.Core.Marshal
+namespace EVEBox.Core.Marshal
 {
     /// <summary>
     /// Marshal 数据同步服务

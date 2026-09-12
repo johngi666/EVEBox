@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Core.Services.Folder
+namespace EVEBox.Core.Services.Folder
 {
     /// <summary>
     /// EVE配置文件夹查找

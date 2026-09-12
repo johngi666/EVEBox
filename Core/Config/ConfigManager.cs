@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
-namespace EVESyncTool.Core.Config
+namespace EVEBox.Core.Config
 {
     /// <summary>
     /// 统一配置管理（所有配置汇总到一个文件，带防抖写入）

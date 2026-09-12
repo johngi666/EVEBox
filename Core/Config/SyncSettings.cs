@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace EVESyncTool.Core.Config
+namespace EVEBox.Core.Config
 {
     /// <summary>
     /// 同步设置数据模型（由 ConfigManager 保存/加载）

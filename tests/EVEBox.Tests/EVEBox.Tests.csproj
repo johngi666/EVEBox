@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\EVESyncTool.csproj" />
+    <ProjectReference Include="..\..\EVEBox.csproj" />
   </ItemGroup>
 
 </Project>

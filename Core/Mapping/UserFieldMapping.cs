@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace EVESyncTool.Core.Mapping
+namespace EVEBox.Core.Mapping
 {
     /// <summary>
     /// 用户文件字段映射（实例化，避免全局静态状态）

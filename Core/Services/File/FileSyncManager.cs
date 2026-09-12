@@ -1,7 +1,7 @@
-﻿using EVESyncTool.Core.Config;
-using EVESyncTool.Core.Mapping;
-using EVESyncTool.Core.Marshal;
-using EVESyncTool.Core.Config;
+﻿using EVEBox.Core.Config;
+using EVEBox.Core.Mapping;
+using EVEBox.Core.Marshal;
+using EVEBox.Core.Config;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +11,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace EVESyncTool.Core.Services.File
+namespace EVEBox.Core.Services.File
 {
     public class FileSyncManager
     {

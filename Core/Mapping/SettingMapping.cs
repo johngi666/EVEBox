@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace EVESyncTool.Core.Mapping
+namespace EVEBox.Core.Mapping
 {
     public class SettingItem
     {

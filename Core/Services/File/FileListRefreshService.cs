@@ -1,6 +1,6 @@
-﻿using EVESyncTool.Core.Config;
-using EVESyncTool.Core.Services.Log;
-using EVESyncTool.Core.Config;
+﻿using EVEBox.Core.Config;
+using EVEBox.Core.Services.Log;
+using EVEBox.Core.Config;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Core.Services.File
+namespace EVEBox.Core.Services.File
 {
     public class FileListRefreshService
     {

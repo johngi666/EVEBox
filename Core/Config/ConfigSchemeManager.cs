@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace EVESyncTool.Core.Config
+namespace EVEBox.Core.Config
 {
     public class ConfigSchemeManager
     {

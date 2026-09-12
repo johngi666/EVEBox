@@ -1,24 +1,24 @@
-﻿using EVESyncTool.Core;
-using EVESyncTool.Core.Config;
-using EVESyncTool.Core.Mapping;
-using EVESyncTool.Core.Services;
-using EVESyncTool.Core.Services.Backup;
-using EVESyncTool.Core.Services.File;
-using EVESyncTool.Core.Services.Folder;
-using EVESyncTool.Core.Services.Grid;
-using EVESyncTool.Core.Services.Log;
-using EVESyncTool.Core.Services.ServerStatus;
-using EVESyncTool.Core.Services.Sync;
-using EVESyncTool.Core.Services.Tools;
-using EVESyncTool.Core.Services.Update;
-using EVESyncTool.Core.UI;
-using EVESyncTool.Dialogs;
-using EVESyncTool.Dialogs.Common;
-using EVESyncTool.Dialogs.Config;
-using EVESyncTool.Dialogs.Info;
-using EVESyncTool.Dialogs.Progress;
-using EVESyncTool.Dialogs.Sync;
-using EVESyncTool.Core.Config;
+﻿using EVEBox.Core;
+using EVEBox.Core.Config;
+using EVEBox.Core.Mapping;
+using EVEBox.Core.Services;
+using EVEBox.Core.Services.Backup;
+using EVEBox.Core.Services.File;
+using EVEBox.Core.Services.Folder;
+using EVEBox.Core.Services.Grid;
+using EVEBox.Core.Services.Log;
+using EVEBox.Core.Services.ServerStatus;
+using EVEBox.Core.Services.Sync;
+using EVEBox.Core.Services.Tools;
+using EVEBox.Core.Services.Update;
+using EVEBox.Core.UI;
+using EVEBox.Dialogs;
+using EVEBox.Dialogs.Common;
+using EVEBox.Dialogs.Config;
+using EVEBox.Dialogs.Info;
+using EVEBox.Dialogs.Progress;
+using EVEBox.Dialogs.Sync;
+using EVEBox.Core.Config;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -31,7 +31,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace EVESyncTool
+namespace EVEBox
 {
     public partial class MainForm : Form
     {
@@ -205,7 +205,7 @@ namespace EVESyncTool
 
         private void InitializeComponent()
         {
-            this.Text = "EVE配置管理工具";
+            this.Text = "EVE BOX";
             this.Size = new Size(950, 588);
             this.MinimumSize = new Size(950, 588);
             this.FormBorderStyle = FormBorderStyle.None;
@@ -372,7 +372,7 @@ namespace EVESyncTool
                 BackColor = Color.FromArgb(248, 248, 248),
                 BorderStyle = BorderStyle.Fixed3D
             };
-            rtbHelp.Text = EVESyncTool.Dialogs.Info.HelpText.Content;
+            rtbHelp.Text = EVEBox.Dialogs.Info.HelpText.Content;
             _panelHelp.Controls.Add(rtbHelp);
 
             // ===== 操作日志：RichTextBox + 定时刷新 =====
@@ -534,8 +534,8 @@ namespace EVESyncTool
 
             // ===== 更新标签 =====
             _btnCheckUpdate.Click += BtnCheckUpdate_Click;
-            _btnGithub.Click += (s, e) => OpenUrl("https://github.com/johngi666/EVESyncTool");
-            _btnGitee.Click += (s, e) => OpenUrl("https://gitee.com/minisangel/EVESyncTool");
+            _btnGithub.Click += (s, e) => OpenUrl("https://github.com/johngi666/EVEBox");
+            _btnGitee.Click += (s, e) => OpenUrl("https://gitee.com/minisangel/EVEBox");
 
             // ★★★ 绑定用户备注编辑事件 ★★★
             _rightPanel.UserRemarkEdited += OnUserRemarkEdited;

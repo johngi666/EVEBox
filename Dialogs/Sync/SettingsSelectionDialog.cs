@@ -1,12 +1,12 @@
-﻿using EVESyncTool.Core.Mapping;
-using EVESyncTool.Dialogs.Common;
+﻿using EVEBox.Core.Mapping;
+using EVEBox.Dialogs.Common;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Dialogs.Sync
+namespace EVEBox.Dialogs.Sync
 {
     public class SettingsSelectionDialog : BaseDialog
     {

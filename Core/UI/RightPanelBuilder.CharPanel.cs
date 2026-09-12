@@ -1,7 +1,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Core.UI
+namespace EVEBox.Core.UI
 {
     /// <summary>
     /// 右侧面板构建器 - 角色配置文件面板（配置同步页右侧）

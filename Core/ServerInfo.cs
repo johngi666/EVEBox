@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace EVESyncTool.Core
+namespace EVEBox.Core
 {
     /// <summary>
     /// 服务器信息集中定义（名称、文件夹关键字、ESI 数据源、API 地址）

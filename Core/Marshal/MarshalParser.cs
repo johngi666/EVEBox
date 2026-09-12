@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 
-namespace EVESyncTool.Core.Marshal
+namespace EVEBox.Core.Marshal
 {
     /// <summary>
     /// Marshal 数据解析器

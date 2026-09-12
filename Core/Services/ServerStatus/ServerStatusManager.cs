@@ -1,5 +1,5 @@
-﻿using EVESyncTool.Core;
-using EVESyncTool.Dialogs.Common;
+﻿using EVEBox.Core;
+using EVEBox.Dialogs.Common;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Core.Services.ServerStatus
+namespace EVEBox.Core.Services.ServerStatus
 {
     public class ServerStatusManager
     {

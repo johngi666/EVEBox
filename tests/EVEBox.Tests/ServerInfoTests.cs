@@ -1,7 +1,7 @@
-using EVESyncTool.Core;
+using EVEBox.Core;
 using Xunit;
 
-namespace EVESyncTool.Tests;
+namespace EVEBox.Tests;
 
 public class ServerInfoTests
 {

@@ -1,14 +1,14 @@
-﻿using EVESyncTool.Core.Config;
-using EVESyncTool.Core.Services.File;
-using EVESyncTool.Core.Services.Log;
-using EVESyncTool.Dialogs.Common;
+﻿using EVEBox.Core.Config;
+using EVEBox.Core.Services.File;
+using EVEBox.Core.Services.Log;
+using EVEBox.Dialogs.Common;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Core.Services.Backup
+namespace EVEBox.Core.Services.Backup
 {
     public class BackupService
     {

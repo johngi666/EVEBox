@@ -6,9 +6,9 @@
 		<UseWindowsForms>true</UseWindowsForms>
 		<Nullable>disable</Nullable>
 		<ApplicationIcon>icon.ico</ApplicationIcon>
-		<AssemblyTitle>EVE配置管理工具</AssemblyTitle>
-		<AssemblyName>EVE配置管理工具</AssemblyName>
-		<RootNamespace>EVESyncTool</RootNamespace>
+		<AssemblyTitle>EVE BOX</AssemblyTitle>
+		<AssemblyName>EVE BOX</AssemblyName>
+		<RootNamespace>EVEBox</RootNamespace>
 
 		<!-- 发布配置：生成单个文件 -->
 		<PublishSingleFile>true</PublishSingleFile>

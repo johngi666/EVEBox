@@ -1,9 +1,9 @@
-﻿using EVESyncTool.Core.UI;
+﻿using EVEBox.Core.UI;
 using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Dialogs.Common
+namespace EVEBox.Dialogs.Common
 {
     public class CustomMessageBox : BaseDialog
     {

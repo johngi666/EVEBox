@@ -1,11 +1,11 @@
-﻿using EVESyncTool.Dialogs.Common;
+﻿using EVEBox.Dialogs.Common;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Dialogs.Sync
+namespace EVEBox.Dialogs.Sync
 {
     public class SyncDialog : BaseDialog
     {

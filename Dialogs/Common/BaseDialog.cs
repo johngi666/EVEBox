@@ -1,10 +1,10 @@
-using EVESyncTool.Core.UI;
+using EVEBox.Core.UI;
 using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Dialogs.Common
+namespace EVEBox.Dialogs.Common
 {
     /// <summary>
     /// 弹窗基类：统一无边框样式、标题栏（标题+关闭按钮+拖动）和暗色主题应用

@@ -7,7 +7,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EVESyncTool.Core.Services.Update
+namespace EVEBox.Core.Services.Update
 {
     /// <summary>
     /// 更新下载与安装服务

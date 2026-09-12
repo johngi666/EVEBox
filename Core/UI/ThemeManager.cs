@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Core.UI
+namespace EVEBox.Core.UI
 {
     /// <summary>
     /// 明暗主题管理器

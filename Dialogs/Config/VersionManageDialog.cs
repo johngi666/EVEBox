@@ -1,8 +1,8 @@
-﻿using EVESyncTool.Core.Config;
-using EVESyncTool.Core.Services;
-using EVESyncTool.Core.UI;
-using EVESyncTool.Core.Config;
-using EVESyncTool.Dialogs.Common;
+﻿using EVEBox.Core.Config;
+using EVEBox.Core.Services;
+using EVEBox.Core.UI;
+using EVEBox.Core.Config;
+using EVEBox.Dialogs.Common;
 using System;
 using System.Collections.ObjectModel;
 using System.Drawing;
@@ -11,7 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Dialogs.Config
+namespace EVEBox.Dialogs.Config
 {
     public partial class VersionManageDialog : BaseDialog
     {

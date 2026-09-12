@@ -1,9 +1,9 @@
-using EVESyncTool.Dialogs.Common;
+using EVEBox.Dialogs.Common;
 using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Dialogs.Progress
+namespace EVEBox.Dialogs.Progress
 {
     /// <summary>
     /// 更新下载进度弹窗

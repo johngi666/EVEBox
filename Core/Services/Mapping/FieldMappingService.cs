@@ -1,10 +1,10 @@
-﻿using EVESyncTool.Core.Config;
-using EVESyncTool.Core.Mapping;
+﻿using EVEBox.Core.Config;
+using EVEBox.Core.Mapping;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace EVESyncTool.Core.Services.Mapping
+namespace EVEBox.Core.Services.Mapping
 {
     /// <summary>
     /// 字段映射服务 - 处理所有映射的查询、过滤和同步逻辑

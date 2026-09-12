@@ -1,5 +1,5 @@
-﻿using EVESyncTool.Core;
-using EVESyncTool.Core.Config;
+﻿using EVEBox.Core;
+using EVEBox.Core.Config;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EVESyncTool.Core.Services.File
+namespace EVEBox.Core.Services.File
 {
     public class FileListService
     {

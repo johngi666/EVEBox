@@ -1,6 +1,6 @@
 using System;
 
-namespace EVESyncTool.Core.Config
+namespace EVEBox.Core.Config
 {
     /// <summary>
     /// 配置方案数据模型

@@ -1,11 +1,11 @@
-﻿using EVESyncTool.Dialogs.Common;
+﻿using EVEBox.Dialogs.Common;
 using System;
 using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Dialogs.Progress
+namespace EVEBox.Dialogs.Progress
 {
     /// <summary>
     /// 同步进度对话框

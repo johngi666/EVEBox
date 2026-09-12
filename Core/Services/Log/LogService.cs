@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace EVESyncTool.Core.Services.Log
+namespace EVEBox.Core.Services.Log
 {
     public class LogService
     {

@@ -1,11 +1,11 @@
-﻿using EVESyncTool.Core.Config;
-using EVESyncTool.Core.Mapping;
-using EVESyncTool.Core.Services.File;
-using EVESyncTool.Core.Services.Mapping;
-using EVESyncTool.Core.Config;
-using EVESyncTool.Dialogs.Common;
-using EVESyncTool.Dialogs.Progress;
-using EVESyncTool.Dialogs.Sync;
+﻿using EVEBox.Core.Config;
+using EVEBox.Core.Mapping;
+using EVEBox.Core.Services.File;
+using EVEBox.Core.Services.Mapping;
+using EVEBox.Core.Config;
+using EVEBox.Dialogs.Common;
+using EVEBox.Dialogs.Progress;
+using EVEBox.Dialogs.Sync;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,7 +14,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Core.Services.Sync
+namespace EVEBox.Core.Services.Sync
 {
     public class SyncService
     {

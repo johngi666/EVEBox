@@ -1,8 +1,8 @@
 using System.Text.Json;
-using EVESyncTool.Core.Marshal;
+using EVEBox.Core.Marshal;
 using Xunit;
 
-namespace EVESyncTool.Tests;
+namespace EVEBox.Tests;
 
 public class MarshalParserTests
 {

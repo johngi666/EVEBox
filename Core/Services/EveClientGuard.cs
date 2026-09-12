@@ -1,9 +1,9 @@
-using EVESyncTool.Dialogs.Common;
+using EVEBox.Dialogs.Common;
 using System.Diagnostics;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Core.Services
+namespace EVEBox.Core.Services
 {
     /// <summary>
     /// EVE 客户端进程守卫：在执行修改文件的操作前检测客户端是否运行。

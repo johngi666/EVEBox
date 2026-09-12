@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace EVESyncTool.Core.Services.Tools
+namespace EVEBox.Core.Services.Tools
 {
     /// <summary>
     /// 工具类：舰船标签显示开关

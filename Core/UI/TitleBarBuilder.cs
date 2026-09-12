@@ -1,11 +1,11 @@
-﻿using EVESyncTool.Core;
+﻿using EVEBox.Core;
 using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-namespace EVESyncTool.Core.UI
+namespace EVEBox.Core.UI
 {
     /// <summary>
     /// 标题栏构建器
@@ -30,7 +30,7 @@ namespace EVESyncTool.Core.UI
             // 标题（带版本号）
             Label titleLabel = new Label
             {
-                Text = $"EVE配置管理工具 {AppInfo.Version}",
+                Text = $"EVE BOX {AppInfo.Version}",
                 ForeColor = Color.White,
                 Font = new Font("Microsoft YaHei", 14, FontStyle.Bold),
                 AutoSize = true,
