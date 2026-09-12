@@ -422,12 +422,55 @@ namespace EVEBox.App
             _panelUpdate.Controls.Add(rtbVersion);
             _panelUpdate.Controls.Add(updatePanel);
 
-            // ===== 工具：预留 =====
+            // ===== 其他工具：7 个新功能（先立项占位） =====
             _panelTools.Dock = DockStyle.Fill;
-            _panelTools.BackColor = Color.White;
+            _panelTools.BackColor = Color.FromArgb(245, 245, 250);
 
-            // ★★★ 舰船标签按钮已移至左栏（主题按钮上方），工具页仅保留占位 ★★★
-            _panelTools.Controls.Add(CreatePlaceholderLabel("更多工具功能将在这里添加，敬请期待！"));
+            FlowLayoutPanel toolsList = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                FlowDirection = FlowDirection.TopDown,
+                WrapContents = false,
+                AutoScroll = true,
+                Padding = new Padding(12),
+                BackColor = Color.FromArgb(245, 245, 250)
+            };
+
+            string[] toolNames = new[]
+            {
+                "查看各种日志",
+                "配置模版一键导入",
+                "种菜模版一键导入",
+                "装备方案一键导入",
+                "舰跳跃距离查询",
+                "各种查询网址汇总",
+                "总览导入",
+            };
+
+            for (int i = 0; i < toolNames.Length; i++)
+            {
+                string name = toolNames[i];
+                Button btn = new Button
+                {
+                    Text = $"{i + 1}. {name}",
+                    Width = 620,
+                    Height = 44,
+                    FlatStyle = FlatStyle.Flat,
+                    BackColor = Color.White,
+                    ForeColor = Color.FromArgb(70, 130, 180),
+                    Font = new Font("Microsoft YaHei", 9, FontStyle.Bold),
+                    Cursor = Cursors.Hand,
+                    TextAlign = ContentAlignment.MiddleLeft,
+                    Padding = new Padding(12, 0, 0, 0),
+                    Margin = new Padding(0, 0, 0, 8)
+                };
+                btn.FlatAppearance.BorderColor = Color.FromArgb(200, 200, 200);
+                btn.Click += (s, e) => ZiDingYiMessageBox.Show(
+                    $"「{name}」功能开发中，敬请期待！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                toolsList.Controls.Add(btn);
+            }
+
+            _panelTools.Controls.Add(toolsList);
 
             _contentHost.Dock = DockStyle.Fill;
             _contentHost.BackColor = Color.White;
