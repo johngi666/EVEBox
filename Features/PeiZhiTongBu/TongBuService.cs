@@ -15,39 +15,17 @@ namespace EVEBox.Features.PeiZhiTongBu
     public class TongBuService
     {
         private readonly WenJianTongBuManager _fileSyncManager;
-        private ZiDuanYingSheService _fieldMappingService;
-        private readonly PeiZhiManager _configManager;
+        private readonly ZiDuanYingSheService _fieldMappingService;
         private readonly Action<string, string, string> _logAction;
 
         public TongBuService(
             WenJianTongBuManager fileSyncManager = null,
             ZiDuanYingSheService fieldMappingService = null,
-            PeiZhiManager configManager = null,
             Action<string, string, string> logAction = null)
         {
             _fileSyncManager = fileSyncManager ?? new WenJianTongBuManager();
-            _fieldMappingService = fieldMappingService ?? new ZiDuanYingSheService(new TongBuSheZhi());
-            _configManager = configManager ?? new PeiZhiManager();
+            _fieldMappingService = fieldMappingService ?? new ZiDuanYingSheService();
             _logAction = logAction;
-
-            LoadSettings();
-        }
-
-        public void LoadSettings()
-        {
-            var settings = _configManager.GetSyncSettings();
-            _fieldMappingService = new ZiDuanYingSheService(settings);
-        }
-
-        public TongBuSheZhi GetSettings()
-        {
-            return _fieldMappingService.GetSettings();
-        }
-
-        public void SaveSettings(TongBuSheZhi settings)
-        {
-            _configManager.SaveSyncSettings(settings);
-            _fieldMappingService = new ZiDuanYingSheService(settings);
         }
 
         #region 文件同步

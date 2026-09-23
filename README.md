@@ -1,216 +1,161 @@
+# EVE BOX
 
+EVE Online 多服配置管理工具 —— 配置同步、备份、配置方案，外加一整套聊天记录 / 模板 / 数据查询小工具。
 
-# EVESyncTool
+## 项目简介
 
-EVE Online 多服同步工具 - 轻松同步游戏配置、备份数据
+EVE BOX 是给 EVE Online 玩家用的桌面工具，C# / WinForms 写成，单文件发布、解压即用。
 
-## 📋 项目简介
+它主要解决一件事：**多个账号、多个角色、三个服务器之间的游戏配置怎么统一**。游戏把配置存在
+`core_user_*.dat`（账号）和 `core_char_*.dat`（角色）里，手动统一要一个个文件复制；EVE BOX 把它变成一次点击，
+顺带把备份、方案版本、聊天记录归档这些周边工作一起做了。
 
-EVESyncTool 是一款专为 EVE Online 玩家设计的桌面同步工具，支持曙光服（Infinity）、国服（Serenity）和国际服（Tranquility）之间的游戏设置同步。该工具采用 C# WinForms 开发，提供直观的图形界面，让玩家可以轻松管理和同步自己的游戏配置。
+## 功能一览
 
-## ✨ 主要功能
+### 主界面（左侧七个标签页）
 
-### 🎮 多服支持
-- **曙光服 (Infinity)** - 默认服务器
-- **国服 (Serenity)** - 中国服务器
-- **国际服 (Tranquility)** - 全球官方服务器
+| 标签页 | 能做什么 |
+|---|---|
+| 配置同步 | 自动定位所选服务器的配置文件夹，把最后修改的账号配置一键覆盖到其他账号 / 角色 |
+| 备份管理 | 把当前配置备份到指定目录（默认 `桌面\EVE配置备份`），随时还原、清理历史备份 |
+| 配置方案管理 | 把配置存成方案（方案文件夹与 `settings_Default` 平级），一键切换 / 更新 / 单独备份还原 / 移除 |
+| 其他工具 | 七个子工具，见下方表格 |
+| 使用说明 | 程序内置的使用手册 |
+| 操作日志 | 所有操作的明细记录，出问题先看这里 |
+| 更新 | 检查并下载新版本 |
 
-### 📁 文件同步
-- **用户文件同步** - 同步所有用户的全局设置
-- **角色文件同步** - 按角色同步个性化配置
-- **完整同步** - 一键同步所有配置
-- **部分同步** - 选择性覆盖特定设置项
+左侧底部还有：夜间模式开关、全局舰船标签开关、三服在线状态实时显示。
 
-### 🔧 可同步设置类型
-- 聊天窗口配置
-- 公共频道名称
-- 群聊窗口标题
-- 概览标签页
-- 自定义命令
-- 书签文件夹
-- 舰船装配配置
+### 其他工具（七项）
 
-### 💾 备份与恢复
-- 手动备份 - 随时创建配置快照
-- 自动备份 - 同步前自动备份
-- 快速恢复 - 一键还原备份
-- 多版本管理 - 保留多个备份版本
+| 工具 | 说明 | 状态 |
+|---|---|---|
+| 查看聊天记录 | 扫描 `文档\EVE\logs\Chatlogs`，按 **角色 → 频道 → 时间段** 提取，合并成一条时间线生成 txt，并自动用记事本打开 | 可用 |
+| 配置方案导入 | 把配置方案包（一个 char 文件 + 一个 user 文件）克隆替换到所选服务器的 `settings_Default`，替换后该服务器所有角色共用这套配置 | 可用 |
+| 种菜模板导入 | 行星开发模板 → `文档\EVE\PlanetaryInteractionTemplates`（`*.json`） | 可用 |
+| 装配方案导入 | 装配方案 → `文档\EVE\fittings`（`*.xml`） | 可用 |
+| 总览模板导入 | 总览模板 → `文档\EVE\Overview`（`*.yaml`） | 可用 |
+| 星系间距查询 | 输入星系名（支持拼音首字母模糊匹配），查询两个星系的直线距离 | 可用 |
+| 舰载扫描 | — | 开发中 |
 
-### 🖥️ 智能功能
-- **自动查找** - 智能检测游戏文件夹位置
-- **深度搜索** - 全盘搜索游戏目录
-- **服务器状态** - 实时显示各服务器在线状态
-- **暗色模式** - 保护眼睛的深色主题
-- **自动更新** - 保持工具最新版本
-- **备注功能** - 为用户添加自定义备注
+四个「导入」类工具是同一套做法：
 
-## 🚀 快速开始
+- **内置模板**放在程序目录 `templates\<模块>\` 下，进面板即可看到、选中就能导入；
+- 也可以用**自定义导入**，从任意位置选文件或文件夹；
+- 执行前会检测 EVE 客户端，游戏运行中会提示先关闭。
+
+## 快速开始
 
 ### 环境要求
-- Windows 10/11 操作系统
-- .NET 6.0 或更高版本
-- EVE Online 游戏客户端
 
-### 安装步骤
+- Windows 10 / 11
+- 发布版是**单文件自包含**的，无需另外安装 .NET 运行时
+- 已安装并能正常登录 EVE Online
 
-1. **下载程序**
-   - 从 [Gitee Releases](https://gitee.com/minisangel/EVESyncTool/releases) 下载最新版本
-   - 或从 [GitHub Releases](https://github.com/minisangel/EVESyncTool/releases) 下载
+### 使用
 
-2. **解压运行**
-   ```bash
-   # 解压下载的 ZIP 文件
-   unzip EVESyncTool-v版本号.zip
-   
-   # 运行程序
-   EVESyncTool.exe
-   ```
+1. 从 [Gitee Releases](https://gitee.com/minisangel/EVEBox/releases) 或 [GitHub Releases](https://github.com/johngi666/EVEBox/releases) 下载最新版压缩包；
+2. 解压后双击 `EVE BOX.exe`；
+3. 首次运行选好所在服务器，程序会自动搜索游戏配置文件夹；找不到时按提示手动选择或全盘深度搜索。
 
-3. **首次配置**
-   - 选择所在服务器
-   - 程序会自动搜索游戏文件夹
-   - 如未找到，可手动选择目录
+### 典型流程：把一套配置推给所有角色
 
-### 使用指南
+1. 只保留一个主账号客户端，把它调成你想要的样子，然后关掉它；
+2. 打开 EVE BOX，在「配置同步」里确认服务器正确、配置文件夹已定位；
+3. 先点「备份」，把当前配置存一份；
+4. 点「快捷覆盖」，确认后完成 —— 所有账号 / 角色就都套用这套配置了。
 
-#### 同步设置
+> 覆盖操作不可逆，**请务必先备份**。
 
-1. **完整同步**
-   - 点击"同步"按钮
-   - 选择要同步的目标位置
-   - 确认即可完成同步
+## 数据与文件位置
 
-2. **选择性同步**
-   - 右键点击要同步的文件
-   - 选择"选择性同步"
-   - 勾选需要同步的设置项
-   - 确认同步
+| 内容 | 位置 |
+|---|---|
+| 程序配置 | `evesync_config.json`（与程序同目录） |
+| 备份目录 | 默认 `桌面\EVE配置备份`，可在配置文件里改 |
+| 游戏配置 | `%LOCALAPPDATA%\CCP\EVE\...\settings_Default`（自动查找，也可手动指定） |
+| 聊天记录 | `文档\EVE\logs\Chatlogs`（需在游戏内开启聊天记录保存） |
+| 聊天记录导出 | 桌面，文件名 `角色名_起止日期.txt`；同名不覆盖，自动加 `(2)`、`(3)` |
+| 内置模板（源码） | `OtherTools\<模块>\MoBan\`，编译时复制到输出目录 `templates\<模块>\` |
 
-#### 备份管理
+## 开发者指南
 
-1. **创建备份**
-   - 点击"备份"按钮
-   - 程序将自动备份当前配置
-
-2. **恢复备份**
-   - 在备份列表中选择要恢复的备份
-   - 点击"还原"按钮
-   - 确认恢复操作
-
-3. **删除备份**
-   - 选中要删除的备份
-   - 点击"删除"按钮
-
-#### 版本管理
-
-- 管理多个配置方案
-- 快速切换不同配置
-- 备份/还原特定版本
-
-## ⚙️ 配置说明
-
-### 同步设置选项
-
-| 设置项 | 说明 | 默认值 |
-|--------|------|--------|
-| 覆盖聊天配置 | 同步时覆盖聊天窗口设置 | ✓ |
-| 覆盖公共频道名称 | 同步公共频道命名 | ✓ |
-| 覆盖群聊标题 | 同步群聊窗口标题 | ✓ |
-| 覆盖其他窗口标题 | 同步其他类型窗口标题 | ✓ |
-| 覆盖概览标签 | 同步概览配置 | ✓ |
-| 覆盖自定义命令 | 同步自定义命令设置 | ✓ |
-| 覆盖书签文件夹 | 同步书签结构 | ✓ |
-| 覆盖装配名称 | 同步舰船装配命名 | ✓ |
-
-### 文件存放位置
-
-- **本地缓存**: `AppData\Local\EVESyncTool\`
-- **备份目录**: `Documents\EVESyncTool\Backup\`
-- **配置文件**: `AppData\Local\EVESyncTool\config.json`
-
-## 🛠️ 开发者指南
-
-### 构建项目
+### 构建与测试
 
 ```bash
-# 克隆仓库
-git clone https://gitee.com/minisangel/EVESyncTool.git
-
-# 进入项目目录
-cd EVESyncTool
-
-# 还原依赖
-dotnet restore
-
-# 构建项目
+git clone https://gitee.com/minisangel/EVEBox.git
+cd EVEBox
 dotnet build --configuration Release
+dotnet test
 ```
+
+打包发布（单文件）：
+
+```bash
+dotnet publish -c Release
+```
+
+- 目标框架：`net8.0-windows`
+- 发布配置：`PublishSingleFile` + `SelfContained` + `PublishReadyToRun`，输出到 `publish\`
 
 ### 项目结构
 
 ```
-EVESyncTool/
-├── Core/                    # 核心功能模块
-│   ├── AppInfo.cs          # 应用信息常量
-│   ├── Config/             # 配置管理
-│   ├── Mapping/            # 字段映射
-│   ├── Marshal/            # 数据解析
-│   ├── ServerInfo.cs       # 服务器信息
-│   ├── Services/           # 业务服务
-│   └── UI/                 # UI 构建器
-├── Dialogs/                # 对话框
-│   ├── Common/             # 通用对话框
-│   ├── Config/             # 配置对话框
-│   ├── Info/               # 信息对话框
-│   ├── Progress/           # 进度对话框
-│   └── Sync/               # 同步对话框
-├── tests/                  # 单元测试
-└── Program.cs              # 程序入口
+EVEBox/
+├── App/                      程序壳与界面框架（主窗体、标题栏、左右侧面板、主题）
+├── Common/                   通用支撑
+│   ├── PeiZhi/               统一配置管理、服务器信息、角色缓存
+│   ├── WenJianJia/           游戏配置文件夹查找与校验
+│   ├── FuWuQiZhuangTai/      服务器在线状态
+│   └── GongYong/             通用弹窗、帮助文本
+├── Features/                 业务功能
+│   ├── PeiZhiTongBu/         配置同步（文件同步、字段映射、marshal 解析）
+│   ├── BeiFen/               备份
+│   ├── PeiZhiFangAn/         配置方案
+│   ├── JianChuanBiaoQian/    舰船标签
+│   ├── RiZhi/                日志
+│   └── GengXin/              更新
+├── OtherTools/               其他工具
+│   ├── MoBanDaoRu/           模板导入公共框架（种菜 / 装配 / 总览共用）
+│   ├── ZhongCaiMoBan/        种菜模板导入
+│   ├── ZhuangPeiFangAn/      装配方案导入
+│   ├── ZongLanMoBan/         总览模板导入
+│   ├── PeiZhiFangAnDaoRu/    配置方案导入
+│   ├── LiaoTianJiLu/         查看聊天记录
+│   ├── XingXiJuLi/           星系间距查询
+│   └── EveKeHuDuanGuard.cs   EVE 客户端运行检测
+├── tests/EVEBox.Tests/       单元测试（xUnit）
+├── EVEBox.sln
+└── EVEBox.csproj
 ```
 
-### 运行测试
+### 命名约定
 
-```bash
-dotnet test
-```
+这个项目的命名规则比较特别，改代码前先了解：
 
-## 📝 更新日志
+- **类型名、命名空间、文件名用中文拼音**（可带英文后缀），例如 `ZhuChuangTi`（主窗体）、`PeiZhiManager`（配置管理）、`WenJianTongBuManager`（文件同步）；
+- **成员变量、局部变量保留英文**；
+- 每个功能模块的**业务代码和它的界面代码放在同一个目录**下；
+- 拼音统一用 `MoBan` 表示「模板」，不要写成 `MuBan`。
 
-### v1.0.0
-- 初始版本发布
-- 支持三大服务器
-- 实现基础同步功能
-- 添加备份恢复功能
-- 支持暗色主题
-- 集成自动更新
+## 更新日志
 
-## 🤝 贡献指南
+### v6.00（2026 年 8 月 27 日）
 
-欢迎提交 Issue 和 Pull Request！
+- UI 界面大更新，代码重构
 
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 创建 Pull Request
+历史版本见 [Releases](https://github.com/johngi666/EVEBox/releases)。
 
-## 📄 许可证
+## 相关链接
 
-本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件
+- 项目主页（Gitee）：https://gitee.com/minisangel/EVEBox
+- GitHub 镜像：https://github.com/johngi666/EVEBox
+- 问题反馈：https://gitee.com/minisangel/EVEBox/issues
 
-## 🔗 相关链接
+## 许可证
 
-- **项目主页**: https://gitee.com/minisangel/EVESyncTool
-- **GitHub 镜像**: https://github.com/minisangel/EVESyncTool
-- **问题反馈**: https://gitee.com/minisangel/EVESyncTool/issues
-- **EVE 中文社区**: https://www.evebbs.com/
-
-## 📧 联系方式
-
-- 作者: MinisAngel
-- Gitee: https://gitee.com/minisangel
-- GitHub: https://github.com/minisangel
+MIT License，详见 [LICENSE](LICENSE)。
 
 ---
 
-**注意**: 使用本工具前，请务必备份您的游戏配置文件，以防数据丢失。本工具不会删除您的原始文件，但同步操作可能会覆盖目标位置的配置。
+**提醒**：使用前请先备份游戏配置文件。本工具不会删除你的原始文件，但同步 / 覆盖类操作会覆盖目标位置的配置。

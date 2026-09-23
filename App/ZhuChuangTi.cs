@@ -8,6 +8,12 @@ using EVEBox.Common.PeiZhi;
 using EVEBox.Features.PeiZhiFangAn;
 using EVEBox.Features.PeiZhiTongBu;
 using EVEBox.OtherTools;
+using EVEBox.OtherTools.LiaoTianJiLu;
+using EVEBox.OtherTools.PeiZhiFangAnDaoRu;
+using EVEBox.OtherTools.XingXiJuLi;
+using EVEBox.OtherTools.ZhongCaiMoBan;
+using EVEBox.OtherTools.ZhuangPeiFangAn;
+using EVEBox.OtherTools.ZongLanMoBan;
 using EVEBox.Features.RiZhi;
 using EVEBox.Common.WenJianJia;
 using System;
@@ -55,6 +61,23 @@ namespace EVEBox.App
         private readonly Panel _panelUpdate = new Panel();
         private readonly Panel _panelTools = new Panel();
 
+        // ===== 其他工具二级导航：7 个内容子面板 =====
+        private readonly Panel _panelLogViewer = new Panel();       // 查看聊天记录
+        private readonly Panel _panelConfigImport = new Panel();    // 配置方案导入
+        private readonly Panel _panelPiImport = new Panel();        // 种菜模板导入
+        private readonly Panel _panelFittingImport = new Panel();   // 装配方案导入
+        private readonly Panel _panelJumpDistance = new Panel();    // 星系间距查询
+        private readonly Panel _panelJianZaiSaoMiao = new Panel();  // 舰载扫描
+        private readonly Panel _panelOverviewImport = new Panel();  // 总览模板导入
+        private readonly List<Button> _toolButtons = new List<Button>();
+        private readonly List<Panel> _toolPanels = new List<Panel>();
+        private readonly LiaoTianJiLuView _liaoTianJiLuView;         // 查看聊天记录
+        private readonly PeiZhiFangAnDaoRuView _peiZhiFangAnDaoRuView;  // 配置方案导入
+        private readonly XingXiJuLiView _xingXiJuLiView;
+        private readonly ZhongCaiMoBanView _zhongCaiMoBanView;        // 种菜模板导入
+        private readonly ZhuangPeiFangAnView _zhuangPeiFangAnView;    // 装配方案导入
+        private readonly ZongLanMoBanView _zongLanMoBanView;          // 总览模板导入
+
         // 配置同步标签控件
         private readonly ComboBox _cmbServer = new ComboBox();
         private readonly Button _btnOpenFolder = new Button();
@@ -94,6 +117,13 @@ namespace EVEBox.App
             _currentServer = _configManager.GetLastServer();
 
             _logService = new RiZhiService();
+            _xingXiJuLiView = new XingXiJuLiView(_httpClient, _configManager);
+
+            _liaoTianJiLuView = new LiaoTianJiLuView(_logService.Log);
+            _peiZhiFangAnDaoRuView = new PeiZhiFangAnDaoRuView(_configManager, _logService.Log);
+            _zhongCaiMoBanView = new ZhongCaiMoBanView();
+            _zhuangPeiFangAnView = new ZhuangPeiFangAnView();
+            _zongLanMoBanView = new ZongLanMoBanView();
 
             var folderFinder = new WenJianJiaFinder(FuWuQiXinXi.ToKeywordMap(), _logService.Log, null);
 
@@ -138,7 +168,6 @@ namespace EVEBox.App
             _syncService = new TongBuService(
                 fileSyncManager,
                 null,
-                _configManager,
                 _logService.Log
             );
 
@@ -366,6 +395,19 @@ namespace EVEBox.App
                 BorderStyle = BorderStyle.Fixed3D
             };
             rtbHelp.Text = EVEBox.Common.GongYong.BangZhuWenBen.Content;
+
+            // 标题「EVE BOX 使用说明」单独放大两号（小五 9pt → 小四 12pt）并加粗
+            string bangZhuBiaoTi = "EVE BOX 使用说明";
+            int biaoTiQiDian = rtbHelp.Text.IndexOf(bangZhuBiaoTi, StringComparison.Ordinal);
+            if (biaoTiQiDian >= 0)
+            {
+                rtbHelp.Select(biaoTiQiDian, bangZhuBiaoTi.Length);
+                rtbHelp.SelectionFont = new Font(
+                    rtbHelp.Font.FontFamily, rtbHelp.Font.Size + 3, FontStyle.Bold);
+                rtbHelp.SelectionStart = 0;
+                rtbHelp.SelectionLength = 0;
+            }
+
             _panelHelp.Controls.Add(rtbHelp);
 
             // ===== 操作日志：RichTextBox + 定时刷新 =====
@@ -422,55 +464,113 @@ namespace EVEBox.App
             _panelUpdate.Controls.Add(rtbVersion);
             _panelUpdate.Controls.Add(updatePanel);
 
-            // ===== 其他工具：7 个新功能（先立项占位） =====
+            // ===== 其他工具：二级导航（左窄列表 + 右内容区） =====
             _panelTools.Dock = DockStyle.Fill;
             _panelTools.BackColor = Color.FromArgb(245, 245, 250);
+            _panelTools.Padding = new Padding(10);
 
-            FlowLayoutPanel toolsList = new FlowLayoutPanel
+            string[] toolNames = new[]
+            {
+                "查看聊天记录", "配置方案导入", "种菜模板导入", "装配方案导入",
+                "总览模板导入", "星系间距查询", "舰载扫描",
+            };
+            Panel[] toolPanels = new[]
+            {
+                _panelLogViewer, _panelConfigImport, _panelPiImport, _panelFittingImport,
+                _panelOverviewImport, _panelJumpDistance, _panelJianZaiSaoMiao,
+            };
+
+            // 右侧 7 个内容子面板（已实现的挂上对应视图，其余先占位）
+            for (int i = 0; i < toolPanels.Length; i++)
+            {
+                toolPanels[i].Dock = DockStyle.Fill;
+                toolPanels[i].BackColor = Color.White;
+                toolPanels[i].Visible = false;
+                if (toolPanels[i] == _panelJumpDistance)
+                    toolPanels[i].Controls.Add(_xingXiJuLiView);
+                else if (toolPanels[i] == _panelLogViewer)
+                    toolPanels[i].Controls.Add(_liaoTianJiLuView);
+                else if (toolPanels[i] == _panelConfigImport)
+                    toolPanels[i].Controls.Add(_peiZhiFangAnDaoRuView);
+                else if (toolPanels[i] == _panelPiImport)
+                    toolPanels[i].Controls.Add(_zhongCaiMoBanView);
+                else if (toolPanels[i] == _panelFittingImport)
+                    toolPanels[i].Controls.Add(_zhuangPeiFangAnView);
+                else if (toolPanels[i] == _panelOverviewImport)
+                    toolPanels[i].Controls.Add(_zongLanMoBanView);
+                else
+                    toolPanels[i].Controls.Add(CreatePlaceholderLabel(
+                        $"{toolNames[i]}开发中…\n\n有bug或者建议请游戏内邮件联系：曙光服-醉晚月\n\n欢迎投喂QAQ"));
+            }
+            _toolPanels.AddRange(toolPanels);
+
+            // 左侧窄列表
+            Panel toolsNav = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.FromArgb(251, 251, 252),
+                BorderStyle = BorderStyle.FixedSingle,
+                Padding = new Padding(6),
+                Margin = new Padding(0)
+            };
+            FlowLayoutPanel navList = new FlowLayoutPanel
             {
                 Dock = DockStyle.Fill,
                 FlowDirection = FlowDirection.TopDown,
                 WrapContents = false,
-                AutoScroll = true,
-                Padding = new Padding(12),
-                BackColor = Color.FromArgb(245, 245, 250)
+                BackColor = Color.Transparent
             };
-
-            string[] toolNames = new[]
-            {
-                "查看各种日志",
-                "配置模版一键导入",
-                "种菜模版一键导入",
-                "装备方案一键导入",
-                "舰跳跃距离查询",
-                "各种查询网址汇总",
-                "总览导入",
-            };
-
             for (int i = 0; i < toolNames.Length; i++)
             {
-                string name = toolNames[i];
+                int idx = i;
                 Button btn = new Button
                 {
-                    Text = $"{i + 1}. {name}",
-                    Width = 620,
-                    Height = 44,
+                    Text = $" {toolNames[i]}",
+                    Width = 100,
+                    Height = 38,
                     FlatStyle = FlatStyle.Flat,
-                    BackColor = Color.White,
-                    ForeColor = Color.FromArgb(70, 130, 180),
-                    Font = new Font("Microsoft YaHei", 9, FontStyle.Bold),
+                    BackColor = Color.Transparent,
+                    ForeColor = Color.FromArgb(98, 106, 115),
+                    Font = new Font("Microsoft YaHei", 9),
                     Cursor = Cursors.Hand,
                     TextAlign = ContentAlignment.MiddleLeft,
-                    Padding = new Padding(12, 0, 0, 0),
-                    Margin = new Padding(0, 0, 0, 8)
+                    Margin = new Padding(0, 0, 0, 4)
                 };
-                btn.FlatAppearance.BorderColor = Color.FromArgb(200, 200, 200);
-                btn.Click += (s, e) => ZiDingYiMessageBox.Show(
-                    $"「{name}」功能开发中，敬请期待！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                toolsList.Controls.Add(btn);
+                btn.FlatAppearance.BorderSize = 0;
+                btn.Click += (s, e) => SelectTool(idx);
+                _toolButtons.Add(btn);
+                navList.Controls.Add(btn);
             }
+            toolsNav.Controls.Add(navList);
 
-            _panelTools.Controls.Add(toolsList);
+            // 右侧内容容器
+            Panel toolsContent = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle,
+                Margin = new Padding(0)
+            };
+            foreach (var p in toolPanels) toolsContent.Controls.Add(p);
+
+            // 左窄列表 + 右内容区 布局
+            TableLayoutPanel toolsLayout = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 1,
+                BackColor = Color.Transparent,
+                Margin = new Padding(0)
+            };
+            toolsLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 118));
+            toolsLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            toolsLayout.Controls.Add(toolsNav, 0, 0);
+            toolsLayout.Controls.Add(toolsContent, 1, 0);
+
+            _panelTools.Controls.Add(toolsLayout);
+
+            // 默认选中第一项（查看日志）
+            SelectTool(0);
 
             _contentHost.Dock = DockStyle.Fill;
             _contentHost.BackColor = Color.White;
@@ -500,6 +600,30 @@ namespace EVEBox.App
             _panelUpdate.Visible = index == ZuoCeMianBanBuilder.TabUpdate;
             _panelTools.Visible = index == ZuoCeMianBanBuilder.TabTools;
             _contentHost.ResumeLayout();
+        }
+
+        /// <summary>
+        /// 其他工具二级导航：切换右侧内容子面板 + 左侧按钮高亮
+        /// </summary>
+        private void SelectTool(int index)
+        {
+            for (int i = 0; i < _toolButtons.Count; i++)
+            {
+                bool active = i == index;
+                _toolButtons[i].BackColor = active ? Color.FromArgb(234, 241, 254) : Color.Transparent;
+                _toolButtons[i].ForeColor = active ? Color.FromArgb(37, 99, 235) : Color.FromArgb(98, 106, 115);
+                _toolButtons[i].Font = new Font("Microsoft YaHei", 9, active ? FontStyle.Bold : FontStyle.Regular);
+                if (i < _toolPanels.Count)
+                    _toolPanels[i].Visible = active;
+            }
+
+            // 切换到「星系间距查询」时自动加载数据
+            if (index < _toolPanels.Count && _toolPanels[index] == _panelJumpDistance)
+                _ = _xingXiJuLiView.EnsureLoadedAsync();
+
+            // 首次进「查看聊天记录」时懒加载扫描（只解析文件名）
+            if (index < _toolPanels.Count && _toolPanels[index] == _panelLogViewer)
+                _ = _liaoTianJiLuView.EnsureLoadedAsync();
         }
 
         private Button CreateTabButton(Button btn, string text, Color backColor, Color foreColor, int width)
@@ -570,8 +694,8 @@ namespace EVEBox.App
 
             // ===== 更新标签 =====
             _btnCheckUpdate.Click += BtnCheckUpdate_Click;
-            _btnGithub.Click += (s, e) => OpenUrl("https://github.com/johngi666/EVEBox");
-            _btnGitee.Click += (s, e) => OpenUrl("https://gitee.com/minisangel/EVEBox");
+            _btnGithub.Click += (s, e) => OpenUrl(YingYongXinXi.GithubUrl);
+            _btnGitee.Click += (s, e) => OpenUrl(YingYongXinXi.GiteeUrl);
 
             // ★★★ 绑定用户备注编辑事件 ★★★
             _rightPanel.UserRemarkEdited += OnUserRemarkEdited;

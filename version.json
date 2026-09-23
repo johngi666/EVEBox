@@ -1,6 +1,6 @@
 {
-  "version": "v5.54",
-  "downloadUrl": "https://gitee.com/minisangel/EVESyncTool/releases/download/v5.54/EVE配置管理工具_v5.54.zip",
-  "url": "https://github.com/johngi666/EVESyncTool/releases/latest",
-  "notes": "新增全局舰船标签显示开关、EVE客户端运行检测（一键关闭/取消操作）、左侧界面优化"
+  "version": "v6.11",
+  "downloadUrl": "https://gitee.com/minisangel/EVEBox/releases/download/v6.11/EVEBOX_v6.11.zip",
+  "url": "https://github.com/johngi666/EVEBox/releases/latest",
+  "notes": "更名 EVE BOX；其他工具新增：查看聊天记录、配置方案导入、种菜/装配/总览模板导入、星系间距查询；更换程序图标"
 }

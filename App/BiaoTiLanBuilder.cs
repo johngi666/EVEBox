@@ -29,10 +29,10 @@ namespace EVEBox.App
                 Margin = new Padding(0)
             };
 
-            // 标题（带版本号）
+            // 标题（版本号只在「更新」页显示，这里只放名称）
             Label titleLabel = new Label
             {
-                Text = $"EVE BOX {YingYongXinXi.Version}",
+                Text = "EVE BOX",
                 ForeColor = Color.White,
                 Font = new Font("Microsoft YaHei", 14, FontStyle.Bold),
                 AutoSize = true,

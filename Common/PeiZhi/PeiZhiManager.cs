@@ -142,19 +142,19 @@ namespace EVEBox.Common.PeiZhi
         }
 
         /// <summary>
-        /// 获取同步设置
+        /// 获取星系间距查询最后使用的服务器
         /// </summary>
-        public TongBuSheZhi GetSyncSettings()
+        public string GetXingXiServer()
         {
-            return _config.TongBuSheZhi ?? new TongBuSheZhi();
+            return _config.XingXiServer ?? "曙光服";
         }
 
         /// <summary>
-        /// 保存同步设置
+        /// 保存星系间距查询最后使用的服务器
         /// </summary>
-        public void SaveSyncSettings(TongBuSheZhi settings)
+        public void SaveXingXiServer(string server)
         {
-            _config.TongBuSheZhi = settings;
+            _config.XingXiServer = server;
             Save();
         }
 
@@ -238,12 +238,12 @@ namespace EVEBox.Common.PeiZhi
     public class YingYongPeiZhi
     {
         public string LastServer { get; set; } = "曙光服 (Infinity)";
+        public string XingXiServer { get; set; } = "曙光服";
         public string CachedPath { get; set; }
         public string BackupPath { get; set; }
         public bool UseDarkMode { get; set; } = false;
         public Dictionary<string, string> CharacterNames { get; set; } = new Dictionary<string, string>();
         public List<FangAn> ConfigSchemes { get; set; } = new List<FangAn>();
-        public TongBuSheZhi TongBuSheZhi { get; set; } = new TongBuSheZhi();
 
         /// <summary>
         /// 用户备注字典 Key: 用户数字ID, Value: 备注文字

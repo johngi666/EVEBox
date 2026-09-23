@@ -20,4 +20,27 @@
 		<!-- 排除测试目录，避免被主项目编译 -->
 		<DefaultItemExcludes>$(DefaultItemExcludes);tests\**</DefaultItemExcludes>
 	</PropertyGroup>
+
+	<!--
+		各功能模块自带的内置模板：模块目录下的 MoBan 文件夹随编译复制到输出目录的 templates\<模块> 下，
+		程序运行时从这里读取（发布时同样会带上）。
+	-->
+	<ItemGroup>
+		<Content Include="OtherTools\PeiZhiFangAnDaoRu\MoBan\**\*">
+			<Link>templates\PeiZhiFangAnDaoRu\%(RecursiveDir)%(Filename)%(Extension)</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="OtherTools\ZhongCaiMoBan\MoBan\**\*">
+			<Link>templates\ZhongCaiMoBan\%(RecursiveDir)%(Filename)%(Extension)</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="OtherTools\ZhuangPeiFangAn\MoBan\**\*">
+			<Link>templates\ZhuangPeiFangAn\%(RecursiveDir)%(Filename)%(Extension)</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="OtherTools\ZongLanMoBan\MoBan\**\*">
+			<Link>templates\ZongLanMoBan\%(RecursiveDir)%(Filename)%(Extension)</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
 </Project>

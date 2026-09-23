@@ -1,4 +1,3 @@
-using EVEBox.Common.PeiZhi;
 using EVEBox.Features.PeiZhiTongBu;
 using System.Collections.Generic;
 using Xunit;
@@ -9,8 +8,7 @@ namespace EVEBox.Tests;
 
 public class ZiDuanYingSheServiceTests
 {
-    private static ZiDuanYingSheService CreateService(TongBuSheZhi? settings = null)
-        => new ZiDuanYingSheService(settings ?? new TongBuSheZhi());
+    private static ZiDuanYingSheService CreateService() => new ZiDuanYingSheService();
 
     [Fact]
     public void IsPrivateChat_DetectsHalfWidthBracket()
@@ -69,30 +67,22 @@ public class ZiDuanYingSheServiceTests
     }
 
     [Fact]
-    public void ShouldOverrideWindowTitle_LocalChannel_AlwaysOverrides()
+    public void ShouldOverrideWindowTitle_LocalChannel_Overrides()
     {
-        // 即使关闭聊天总开关，本地频道也强制覆盖
-        var settings = new TongBuSheZhi { OverrideChatConfig = false };
-        var service = CreateService(settings);
+        var service = CreateService();
 
         Assert.True(service.ShouldOverrideWindowTitle("k1", "本地"));
     }
 
     [Fact]
-    public void ShouldOverrideWindowTitle_PublicChannel_FollowsSetting()
+    public void ShouldOverrideWindowTitle_PublicChannel_Overrides()
     {
         var mapping = new YongHuZiDuanYingShe();
         mapping.BuildChatChannelMapping(new Dictionary<string, string> { { "1001", "联合势力" } });
         var service = CreateService();
         service.LoadUserMapping(mapping);
 
-        // 默认开启公共频道覆盖
         Assert.True(service.ShouldOverrideWindowTitle("1001", "联合势力"));
-
-        // 关闭后不再覆盖
-        var off = CreateService(new TongBuSheZhi { OverridePublicChannelNames = false });
-        off.LoadUserMapping(mapping);
-        Assert.False(off.ShouldOverrideWindowTitle("1001", "联合势力"));
     }
 
     [Fact]
