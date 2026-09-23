@@ -40,7 +40,7 @@ The bottom of the left panel also shows: dark-mode toggle, a global ship-tag tog
 
 All four import tools work the same way:
 
-- **Built-in templates** live under `templates\<module>\` next to the executable — they show up in the panel, pick one and import;
+- **Built-in templates** are packed into the executable and extracted to `templates\<module>\` on first run — they show up in the panel, pick one and import;
 - **Custom import** lets you pick any file or folder from anywhere on disk;
 - Before importing, the tool checks whether an EVE client is running and asks you to close the game first.
 
@@ -75,7 +75,7 @@ All four import tools work the same way:
 | Backup folder | Default `Desktop\EVE配置备份`, changeable in the config file |
 | Game settings | `%LOCALAPPDATA%\CCP\EVE\...\settings_Default` (auto-detected, can be set manually) |
 | Chat logs | `Documents\EVE\logs\Chatlogs` (chat logging must be enabled in game) |
-| Built-in templates (source) | `OtherTools\<module>\MoBan\`, copied to `templates\<module>\` on build |
+| Built-in templates | Source in `OtherTools\<module>\MoBan\`, packed into the executable and extracted to `templates\<module>\` on first run |
 | Exported chat logs | Desktop, named `<character>_<from>-<to>.txt` (never overwrites — adds `(2)` if it exists) |
 
 ## Developer Guide
@@ -140,6 +140,14 @@ The naming rules are unusual, so read this before changing code:
 - "Template" is always spelled `MoBan`, never `MuBan`.
 
 ## Changelog
+
+### v6.12 (September 23, 2026)
+- Built-in templates are now packed into the executable and extracted on first run, so auto-update no longer loses them
+
+### v6.11 (September 23, 2026)
+- Renamed to EVE BOX; UI and folder structure refactored
+- New Other Tools: chat log viewer, config scheme import, PI / fitting / overview template import, system distance
+- New app icon; removed unused settings and dead code
 
 ### v6.00 (August 27, 2026)
 - Major UI overhaul and code refactoring

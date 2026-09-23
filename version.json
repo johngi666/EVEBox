@@ -1,6 +1,6 @@
 {
-  "version": "v6.11",
-  "downloadUrl": "https://gitee.com/minisangel/EVEBox/releases/download/v6.11/EVEBOX_v6.11.zip",
+  "version": "v6.12",
+  "downloadUrl": "https://gitee.com/minisangel/EVEBox/releases/download/v6.12/EVEBOX_v6.12.zip",
   "url": "https://github.com/johngi666/EVEBox/releases/latest",
-  "notes": "更名 EVE BOX；其他工具新增：查看聊天记录、配置方案导入、种菜/装配/总览模板导入、星系间距查询；更换程序图标"
+  "notes": "内置模板改为打包进主程序，首次运行自动释放到 templates 目录；自动更新只替换主程序，不再丢内置模板"
 }

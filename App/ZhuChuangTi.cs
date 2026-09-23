@@ -9,6 +9,7 @@ using EVEBox.Features.PeiZhiFangAn;
 using EVEBox.Features.PeiZhiTongBu;
 using EVEBox.OtherTools;
 using EVEBox.OtherTools.LiaoTianJiLu;
+using EVEBox.OtherTools.MoBanDaoRu;
 using EVEBox.OtherTools.PeiZhiFangAnDaoRu;
 using EVEBox.OtherTools.XingXiJuLi;
 using EVEBox.OtherTools.ZhongCaiMoBan;
@@ -117,6 +118,11 @@ namespace EVEBox.App
             _currentServer = _configManager.GetLastServer();
 
             _logService = new RiZhiService();
+
+            // 内置模板已编进 exe：首次运行（或文件缺失/损坏）时释放到 程序目录\templates
+            NeiZhiMoBanZiYuan.QueBaoDaoChu(
+                Path.Combine(AppContext.BaseDirectory, "templates"), _logService.Log);
+
             _xingXiJuLiView = new XingXiJuLiView(_httpClient, _configManager);
 
             _liaoTianJiLuView = new LiaoTianJiLuView(_logService.Log);

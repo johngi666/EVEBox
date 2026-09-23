@@ -22,25 +22,23 @@
 	</PropertyGroup>
 
 	<!--
-		各功能模块自带的内置模板：模块目录下的 MoBan 文件夹随编译复制到输出目录的 templates\<模块> 下，
-		程序运行时从这里读取（发布时同样会带上）。
+		各功能模块自带的内置模板：直接编译进 exe（EmbeddedResource），程序启动时由
+		NeiZhiMoBanZiYuan 按需释放到程序目录的 templates\<模块>\ 下。
+		这样发布包只需要一个 exe，自动更新（只替换主程序）也不会丢模板。
+		LogicalName 前缀 EVEBoxTemplates/ 供运行时识别。
 	-->
 	<ItemGroup>
-		<Content Include="OtherTools\PeiZhiFangAnDaoRu\MoBan\**\*">
-			<Link>templates\PeiZhiFangAnDaoRu\%(RecursiveDir)%(Filename)%(Extension)</Link>
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="OtherTools\ZhongCaiMoBan\MoBan\**\*">
-			<Link>templates\ZhongCaiMoBan\%(RecursiveDir)%(Filename)%(Extension)</Link>
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="OtherTools\ZhuangPeiFangAn\MoBan\**\*">
-			<Link>templates\ZhuangPeiFangAn\%(RecursiveDir)%(Filename)%(Extension)</Link>
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="OtherTools\ZongLanMoBan\MoBan\**\*">
-			<Link>templates\ZongLanMoBan\%(RecursiveDir)%(Filename)%(Extension)</Link>
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
+		<EmbeddedResource Include="OtherTools\PeiZhiFangAnDaoRu\MoBan\**\*">
+			<LogicalName>EVEBoxTemplates/PeiZhiFangAnDaoRu/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+		</EmbeddedResource>
+		<EmbeddedResource Include="OtherTools\ZhongCaiMoBan\MoBan\**\*">
+			<LogicalName>EVEBoxTemplates/ZhongCaiMoBan/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+		</EmbeddedResource>
+		<EmbeddedResource Include="OtherTools\ZhuangPeiFangAn\MoBan\**\*">
+			<LogicalName>EVEBoxTemplates/ZhuangPeiFangAn/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+		</EmbeddedResource>
+		<EmbeddedResource Include="OtherTools\ZongLanMoBan\MoBan\**\*">
+			<LogicalName>EVEBoxTemplates/ZongLanMoBan/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+		</EmbeddedResource>
 	</ItemGroup>
 </Project>
