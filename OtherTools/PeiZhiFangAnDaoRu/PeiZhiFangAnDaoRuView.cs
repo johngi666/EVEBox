@@ -57,7 +57,7 @@ namespace EVEBox.OtherTools.PeiZhiFangAnDaoRu
             _peiZhi = peiZhi;
             _riZhi = riZhi;
             _fuWu = new PeiZhiFangAnDaoRuService(
-                Path.Combine(AppContext.BaseDirectory, "templates", "PeiZhiFangAnDaoRu"));
+                NeiZhiMoBanZiYuan.MoBanMuLu("PeiZhiFangAnDaoRu"));
             _wenJianJiaChaZhao = new WenJianJiaFinder(FuWuQiXinXi.ToKeywordMap(), riZhi, null);
 
             _cmbFuWuQi = new ComboBox();

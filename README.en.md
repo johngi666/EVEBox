@@ -40,7 +40,7 @@ The bottom of the left panel also shows: dark-mode toggle, a global ship-tag tog
 
 All four import tools work the same way:
 
-- **Built-in templates** are packed into the executable and extracted to `templates\<module>\` on first run — they show up in the panel, pick one and import;
+- **Built-in templates** are packed into the executable and extracted to `Documents\EVE\templates\<module>\` on first run — they show up in the panel, pick one and import;
 - **Custom import** lets you pick any file or folder from anywhere on disk;
 - Before importing, the tool checks whether an EVE client is running and asks you to close the game first.
 
@@ -75,7 +75,7 @@ All four import tools work the same way:
 | Backup folder | Default `Desktop\EVE配置备份`, changeable in the config file |
 | Game settings | `%LOCALAPPDATA%\CCP\EVE\...\settings_Default` (auto-detected, can be set manually) |
 | Chat logs | `Documents\EVE\logs\Chatlogs` (chat logging must be enabled in game) |
-| Built-in templates | Source in `OtherTools\<module>\MoBan\`, packed into the executable and extracted to `templates\<module>\` on first run |
+| Built-in templates | Source in `OtherTools\<module>\MoBan\`, packed into the executable and extracted to `Documents\EVE\templates\<module>\` on first run; an old `templates` folder next to the executable is sent to the Recycle Bin |
 | Exported chat logs | Desktop, named `<character>_<from>-<to>.txt` (never overwrites — adds `(2)` if it exists) |
 
 ## Developer Guide
@@ -140,6 +140,10 @@ The naming rules are unusual, so read this before changing code:
 - "Template" is always spelled `MoBan`, never `MuBan`.
 
 ## Changelog
+
+### v6.14 (September 24, 2026)
+- Built-in templates now extract to `Documents\EVE\templates\<module>\` instead of next to the executable, so the app works from any location (temp folder, Program Files, ...)
+- On upgrade, the leftover `templates` folder next to the executable is sent to the Recycle Bin; if it holds files you added yourself, it is left untouched
 
 ### v6.13 (September 23, 2026)
 - Renamed to EVE BOX; UI and folder structure refactored

@@ -9,16 +9,16 @@ namespace EVEBox.App
         /// <summary>
         /// 当前版本号（发布时修改此处即可）
         /// </summary>
-        public const string Version = "v6.13";
+        public const string Version = "v6.14";
 
         /// <summary>
         /// 更新内容（每行用 \n 换行）
         /// </summary>
         public const string ReleaseNotes =
+            "   - 内置模板改放到 文档\\EVE\\templates，不再写在程序目录旁边；升级时自动把程序目录下的旧 templates 送进回收站\n" +
             "   - 程序更名为 EVE BOX，界面与目录结构按模块重构\n" +
             "   - 其他工具新增：查看聊天记录、配置方案导入、种菜模板导入、装配方案导入、总览模板导入、星系间距查询\n" +
             "   - 更换新图标，清理无用设置与死代码\n" +
-            "   - 内置模板打包进主程序，首次运行自动释放到 templates 目录\n" +
             "   - 修复自动更新后主程序文件名仍是旧名（EVE配置管理工具.exe）的问题";
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace EVEBox.App
         /// <summary>
         /// 更新日期
         /// </summary>
-        public const string ReleaseDate = "2026年9月23日";
+        public const string ReleaseDate = "2026年9月24日";
 
         /// <summary>
         /// 项目主页（Gitee）

@@ -119,9 +119,11 @@ namespace EVEBox.App
 
             _logService = new RiZhiService();
 
-            // 内置模板已编进 exe：首次运行（或文件缺失/损坏）时释放到 程序目录\templates
-            NeiZhiMoBanZiYuan.QueBaoDaoChu(
-                Path.Combine(AppContext.BaseDirectory, "templates"), _logService.Log);
+            // 内置模板已编进 exe：首次运行（或文件缺失/损坏）时释放到 文档\EVE\templates
+            NeiZhiMoBanZiYuan.QueBaoDaoChu(NeiZhiMoBanZiYuan.MoBanGenMuLu, _logService.Log);
+
+            // 旧版本残留在程序目录的 templates 换位置后就没用了，顺手送回收站
+            NeiZhiMoBanZiYuan.QingLiJiuMuLu(_logService.Log);
 
             _xingXiJuLiView = new XingXiJuLiView(_httpClient, _configManager);
 

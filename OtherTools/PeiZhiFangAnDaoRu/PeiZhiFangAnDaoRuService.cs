@@ -33,7 +33,7 @@ namespace EVEBox.OtherTools.PeiZhiFangAnDaoRu
         private const string CharZhengZe = @"^core_char_\d+\.dat$";
         private const string UserZhengZe = @"^core_user_\d+\.dat$";
 
-        /// <summary>内置方案包目录（编译时从本模块的 MoBan 复制到输出目录的 templates\PeiZhiFangAnDaoRu）</summary>
+        /// <summary>内置方案包目录（运行时释放到 文档\EVE\templates\PeiZhiFangAnDaoRu）</summary>
         public string NeiZhiFangAnMuLu { get; }
 
         public PeiZhiFangAnDaoRuService(string neiZhiFangAnMuLu)

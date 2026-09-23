@@ -17,7 +17,7 @@ namespace EVEBox.OtherTools.MoBanDaoRu
 
         /// <summary>
         /// 内置模板目录（运行时路径）。源码里每个功能模块自己有一个 MoBan 文件夹，
-        /// 编译时复制到输出目录的 templates\&lt;模块&gt; 下，这里指向的就是输出目录里的那一份。
+        /// 编译时编进 exe，运行时释放到 文档\EVE\templates\&lt;模块&gt; 下，这里指向的就是那一份。
         /// </summary>
         public string NeiZhiMoBanMuLu { get; set; } = "";
 

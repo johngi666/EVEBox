@@ -7,7 +7,7 @@ using Xunit;
 namespace EVEBox.Tests;
 
 /// <summary>
-/// 内置模板资源：模板文件编进 exe，启动时释放到 templates\ 目录。
+/// 内置模板资源：模板文件编进 exe，启动时释放到 文档\EVE\templates\。
 /// </summary>
 public class NeiZhiMoBanZiYuanTests : IDisposable
 {
@@ -91,5 +91,61 @@ public class NeiZhiMoBanZiYuanTests : IDisposable
 
         Assert.True(Directory.Exists(shenLuJing));
         Assert.NotEmpty(Directory.GetFiles(shenLuJing, "*", SearchOption.AllDirectories));
+    }
+
+    [Fact]
+    public void 释放位置在文档EVE下()
+    {
+        string wenDang = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+        Assert.Equal(Path.Combine(wenDang, "EVE", "templates"), NeiZhiMoBanZiYuan.MoBanGenMuLu);
+        Assert.Equal(Path.Combine(NeiZhiMoBanZiYuan.MoBanGenMuLu, "ZhongCaiMoBan"),
+            NeiZhiMoBanZiYuan.MoBanMuLu("ZhongCaiMoBan"));
+    }
+
+    [Fact]
+    public void 旧目录全是内置模板时会被清理()
+    {
+        string jiu = Path.Combine(_root, "旧");
+        NeiZhiMoBanZiYuan.QueBaoDaoChu(jiu);
+
+        Assert.Null(NeiZhiMoBanZiYuan.ZhaoChuFeiNeiZhiWenJian(jiu));
+        Assert.True(NeiZhiMoBanZiYuan.QingLiJiuMuLu(jiu));
+        Assert.False(Directory.Exists(jiu));
+    }
+
+    [Fact]
+    public void 旧目录里有用户文件时保留()
+    {
+        string jiu = Path.Combine(_root, "旧二");
+        NeiZhiMoBanZiYuan.QueBaoDaoChu(jiu);
+
+        string yongHu = Path.Combine(jiu, "ZongLanMoBan", "我自己的.yaml");
+        File.WriteAllText(yongHu, "x");
+
+        Assert.Equal(yongHu, NeiZhiMoBanZiYuan.ZhaoChuFeiNeiZhiWenJian(jiu));
+        Assert.False(NeiZhiMoBanZiYuan.QingLiJiuMuLu(jiu));
+        Assert.True(File.Exists(yongHu));
+    }
+
+    [Fact]
+    public void 旧目录里的内置文件被改过也保留()
+    {
+        string jiu = Path.Combine(_root, "旧三");
+        NeiZhiMoBanZiYuan.QueBaoDaoChu(jiu);
+
+        var xiang = NeiZhiMoBanZiYuan.LieChuZiYuan()[0];
+        File.WriteAllText(Path.Combine(jiu, xiang.Value.Replace('/', Path.DirectorySeparatorChar)),
+            new string('x', 4096));
+
+        Assert.NotNull(NeiZhiMoBanZiYuan.ZhaoChuFeiNeiZhiWenJian(jiu));
+        Assert.False(NeiZhiMoBanZiYuan.QingLiJiuMuLu(jiu));
+        Assert.True(Directory.Exists(jiu));
+    }
+
+    [Fact]
+    public void 旧目录不存在时不做任何事()
+    {
+        Assert.False(NeiZhiMoBanZiYuan.QingLiJiuMuLu(Path.Combine(_root, "根本不存在")));
     }
 }
