@@ -141,13 +141,12 @@ The naming rules are unusual, so read this before changing code:
 
 ## Changelog
 
-### v6.12 (September 23, 2026)
-- Built-in templates are now packed into the executable and extracted on first run, so auto-update no longer loses them
-
-### v6.11 (September 23, 2026)
+### v6.13 (September 23, 2026)
 - Renamed to EVE BOX; UI and folder structure refactored
 - New Other Tools: chat log viewer, config scheme import, PI / fitting / overview template import, system distance
 - New app icon; removed unused settings and dead code
+- Built-in templates are packed into the executable and extracted on first run, so auto-update no longer loses them
+- Fixed the executable keeping its old name (EVE配置管理工具.exe) after an in-app auto-update
 
 ### v6.00 (August 27, 2026)
 - Major UI overhaul and code refactoring

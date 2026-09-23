@@ -41,6 +41,10 @@ namespace EVEBox.App
                     return;
                 }
 
+                // 旧版自动更新留下的文件名（EVE配置管理工具.exe）在这里纠正为 EVE BOX.exe
+                if (EVEBox.Features.GengXin.ChengXuGaiMingService.GaiMingBingChongQi())
+                    return;
+
                 // 首次启动，正常运行
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);

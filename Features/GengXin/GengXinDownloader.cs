@@ -1,3 +1,4 @@
+using EVEBox.App;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -13,11 +14,21 @@ namespace EVEBox.Features.GengXin
 {
     /// <summary>
     /// 更新下载与安装服务
-    /// 1. 下载新 exe（带进度）
-    /// 2. 生成替换脚本（cmd），由脚本完成：杀进程 → 替换 → 重启 → 自删
+    /// 1. 下载更新包（带进度），解压取包内主程序
+    /// 2. 生成替换脚本（cmd），由脚本完成：杀进程 → 删旧 exe → 替换 → 重启 → 自删
+    /// 安装后的文件名取包内主程序名（EVE BOX.exe），不再沿用被替换的旧文件名，
+    /// 这样从旧版（EVE配置管理工具.exe）更新过来也能得到正确的程序名。
     /// </summary>
     public class GengXinDownloader
     {
+        /// <summary>
+        /// 暂存文件名后缀：先落成 "EVE BOX.new.exe"，避免与正在运行的旧 exe 同名冲突
+        /// </summary>
+        public const string ZanCunHouZhui = ".new.exe";
+
+        /// <summary>等待主程序退出的最大次数（每次 1 秒），超时则走兜底分支</summary>
+        private const int ZuiDaDengDaiCiShu = 60;
+
         private readonly HttpClient _httpClient;
 
         public GengXinDownloader(HttpClient httpClient)
@@ -76,73 +87,122 @@ namespace EVEBox.Features.GengXin
 
         /// <summary>
         /// 下载并准备新 exe（支持直接下载 .exe 或 .zip 压缩包自动解压）
+        /// 成功返回暂存的新 exe 完整路径（形如 "EVE BOX.new.exe"），失败返回 null。
         /// </summary>
-        public async Task<bool> DownloadAndPrepareAsync(
+        public async Task<string> DownloadAndPrepareAsync(
             string url,
-            string finalExePath,
+            string targetDir,
             IProgress<int> progress,
             CancellationToken cancellationToken)
         {
             bool isZip = url.EndsWith(".zip", StringComparison.OrdinalIgnoreCase);
             string tempPath = Path.Combine(Path.GetTempPath(),
                 "eve_update_" + Guid.NewGuid().ToString("N") + (isZip ? ".zip" : ".tmp"));
+            string extractDir = null;
 
             try
             {
                 if (!await DownloadAsync(url, tempPath, progress, cancellationToken))
-                    return false;
+                    return null;
+
+                string sourceExe;
+                string sourceName;
 
                 if (isZip)
                 {
-                    string extractDir = Path.Combine(Path.GetTempPath(),
+                    extractDir = Path.Combine(Path.GetTempPath(),
                         "eve_extract_" + Guid.NewGuid().ToString("N"));
-                    System.IO.Directory.CreateDirectory(extractDir);
+                    Directory.CreateDirectory(extractDir);
                     ZipFile.ExtractToDirectory(tempPath, extractDir);
 
-                    string zipExe = System.IO.Directory
-                        .GetFiles(extractDir, "*.exe", SearchOption.AllDirectories)
+                    // 包内若有多个 exe（比如附带的小工具），取体积最大的那个当主程序
+                    sourceExe = Directory.GetFiles(extractDir, "*.exe", SearchOption.AllDirectories)
+                        .OrderByDescending(f => new FileInfo(f).Length)
                         .FirstOrDefault();
-                    if (zipExe == null)
-                        return false;
-
-                    System.IO.File.Move(zipExe, finalExePath, true);
+                    if (sourceExe == null)
+                        return null;
+                    sourceName = Path.GetFileName(sourceExe);
                 }
                 else
                 {
-                    System.IO.File.Move(tempPath, finalExePath, true);
+                    sourceExe = tempPath;
+                    string urlName = Path.GetFileName(new Uri(url).AbsolutePath);
+                    sourceName = urlName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)
+                        ? urlName
+                        : YingYongXinXi.ExeFileName;
                 }
 
-                return true;
+                string zanCunLuJing = Path.Combine(targetDir,
+                    Path.GetFileNameWithoutExtension(sourceName) + ZanCunHouZhui);
+                File.Move(sourceExe, zanCunLuJing, true);
+                return zanCunLuJing;
+            }
+            catch (Exception)
+            {
+                return null;
             }
             finally
             {
-                try { if (System.IO.File.Exists(tempPath)) System.IO.File.Delete(tempPath); } catch { }
+                try { if (File.Exists(tempPath)) File.Delete(tempPath); } catch { }
+                try { if (extractDir != null && Directory.Exists(extractDir)) Directory.Delete(extractDir, true); } catch { }
             }
         }
 
         /// <summary>
-        /// 生成替换脚本并启动，随后主程序应自行退出
-        /// 脚本逻辑：等待主程序退出 → 替换 exe → 重启 → 删除自身
+        /// 暂存路径 → 安装后的文件名：去掉 ".new" 后缀，即包内主程序名
         /// </summary>
-        public void ApplyUpdateAndRestart(string currentExePath, string newExePath)
+        public static string JieXiAnZhuangMing(string zanCunExeLuJing)
         {
-            string exeName = Path.GetFileName(currentExePath);
-            string scriptPath = Path.Combine(Path.GetDirectoryName(currentExePath), "update_install.cmd");
+            string ming = Path.GetFileName(zanCunExeLuJing);
+            if (ming.EndsWith(ZanCunHouZhui, StringComparison.OrdinalIgnoreCase))
+                return ming.Substring(0, ming.Length - ZanCunHouZhui.Length) + ".exe";
+            return ming;
+        }
 
-            // 注意：路径中的中文/空格已用引号包裹，%~f0 为脚本自身路径
-            string content =
+        /// <summary>
+        /// 生成替换脚本内容
+        /// 脚本逻辑：杀进程 → 删除旧 exe → 把暂存的新 exe 换成正式名字 → 重启 → 删除自身
+        /// </summary>
+        public static string ShengChengAnZhuangJiaoBen(string dangQianExeLuJing, string zanCunExeLuJing)
+        {
+            string muLu = Path.GetDirectoryName(dangQianExeLuJing) ?? string.Empty;
+            string anZhuangLuJing = Path.Combine(muLu, JieXiAnZhuangMing(zanCunExeLuJing));
+            string dangQianMing = Path.GetFileName(dangQianExeLuJing);
+            string anZhuangMing = Path.GetFileName(anZhuangLuJing);
+
+            // 注意：路径中的空格/中文已用引号包裹，%~f0 为脚本自身路径
+            return
                 "@echo off\r\n" +
                 "chcp 65001 >nul\r\n" +
+                "set /a n=0\r\n" +
                 ":wait\r\n" +
-                $"taskkill /f /im \"{exeName}\" >nul 2>&1\r\n" +
-                "timeout /t 2 /nobreak >nul\r\n" +
-                $"del /f \"{currentExePath}\" >nul 2>&1\r\n" +
-                $"if exist \"{currentExePath}\" goto wait\r\n" +
-                $"move /y \"{newExePath}\" \"{currentExePath}\" >nul\r\n" +
-                $"start \"\" \"{currentExePath}\"\r\n" +
+                $"taskkill /f /im \"{dangQianMing}\" >nul 2>&1\r\n" +
+                $"taskkill /f /im \"{anZhuangMing}\" >nul 2>&1\r\n" +
+                "timeout /t 1 /nobreak >nul\r\n" +
+                "set /a n+=1\r\n" +
+                $"if %n% gtr {ZuiDaDengDaiCiShu} goto giveup\r\n" +
+                $"del /f /q \"{dangQianExeLuJing}\" >nul 2>&1\r\n" +
+                $"if exist \"{dangQianExeLuJing}\" goto wait\r\n" +
+                $"move /y \"{zanCunExeLuJing}\" \"{anZhuangLuJing}\" >nul\r\n" +
+                $"if exist \"{zanCunExeLuJing}\" goto giveup\r\n" +
+                $"start \"\" \"{anZhuangLuJing}\"\r\n" +
+                "del /f \"%~f0\"\r\n" +
+                "exit /b\r\n" +
+                ":giveup\r\n" +
+                // 兜底：删不掉或换不动时，至少把还能启动的那一份拉起来，别把用户卡在黑屏
+                $"if exist \"{zanCunExeLuJing}\" (start \"\" \"{zanCunExeLuJing}\") else (start \"\" \"{dangQianExeLuJing}\")\r\n" +
                 "del /f \"%~f0\"\r\n";
+        }
 
-            System.IO.File.WriteAllText(scriptPath, content);
+        /// <summary>
+        /// 生成替换脚本并启动，随后主程序应自行退出
+        /// </summary>
+        public void ApplyUpdateAndRestart(string dangQianExeLuJing, string zanCunExeLuJing)
+        {
+            string muLu = Path.GetDirectoryName(dangQianExeLuJing) ?? string.Empty;
+            string scriptPath = Path.Combine(muLu, "update_install.cmd");
+
+            File.WriteAllText(scriptPath, ShengChengAnZhuangJiaoBen(dangQianExeLuJing, zanCunExeLuJing));
 
             Process.Start(new ProcessStartInfo
             {

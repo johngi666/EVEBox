@@ -1,6 +1,6 @@
 {
-  "version": "v6.12",
-  "downloadUrl": "https://gitee.com/minisangel/EVEBox/releases/download/v6.12/EVEBOX_v6.12.zip",
+  "version": "v6.13",
+  "downloadUrl": "https://gitee.com/minisangel/EVEBox/releases/download/v6.13/EVEBOX_v6.13.zip",
   "url": "https://github.com/johngi666/EVEBox/releases/latest",
-  "notes": "内置模板改为打包进主程序，首次运行自动释放到 templates 目录；自动更新只替换主程序，不再丢内置模板"
+  "notes": "程序更名为 EVE BOX，界面与目录结构按模块重构；其他工具新增查看聊天记录、配置方案导入、种菜/装配/总览模板导入、星系间距查询；内置模板打包进主程序；修复自动更新后主程序文件名仍是旧名（EVE配置管理工具.exe）的问题"
 }

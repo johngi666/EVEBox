@@ -112,15 +112,14 @@ namespace EVEBox.Features.GengXin
             {
                 string exePath = Application.ExecutablePath;
                 string dir = Path.GetDirectoryName(exePath) ?? string.Empty;
-                string newExePath = Path.Combine(dir, Path.GetFileNameWithoutExtension(exePath) + ".new.exe");
 
                 using var dialog = new XiaZaiJinDuDialog(version);
                 dialog.Owner = _owner;
                 dialog.Show();
 
                 var progress = new Progress<int>(p => dialog.UpdateProgress(p, $"已下载 {p}%"));
-                bool ok = await Task.Run(() =>
-                    _downloader.DownloadAndPrepareAsync(downloadUrl, newExePath, progress, CancellationToken.None));
+                string zanCunExePath = await Task.Run(() =>
+                    _downloader.DownloadAndPrepareAsync(downloadUrl, dir, progress, CancellationToken.None));
 
                 if (dialog.IsCancelled)
                 {
@@ -129,7 +128,7 @@ namespace EVEBox.Features.GengXin
                     return;
                 }
 
-                if (!ok)
+                if (string.IsNullOrEmpty(zanCunExePath))
                 {
                     dialog.Close();
                     ZiDingYiMessageBox.Show("下载失败，请稍后重试，或点击标题栏 GitHub/Gitee 按钮手动下载。",
@@ -141,8 +140,8 @@ namespace EVEBox.Features.GengXin
                 dialog.UpdateProgress(100, "下载完成，即将重启安装...");
                 await Task.Delay(600);
 
-                // 启动替换脚本：杀进程 → 替换 exe → 重启 → 自删
-                _downloader.ApplyUpdateAndRestart(exePath, newExePath);
+                // 启动替换脚本：杀进程 → 删除旧 exe → 新 exe 落成包内文件名（EVE BOX.exe）→ 重启 → 自删
+                _downloader.ApplyUpdateAndRestart(exePath, zanCunExePath);
                 dialog.Close();
                 _logAction?.Invoke("自动更新", "成功", $"已下载 {version}，程序即将重启");
                 Application.Exit();
