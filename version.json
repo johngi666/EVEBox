@@ -2,5 +2,5 @@
   "version": "v6.14",
   "downloadUrl": "https://gitee.com/minisangel/EVEBox/releases/download/v6.14/EVEBOX_v6.14.zip",
   "url": "https://github.com/johngi666/EVEBox/releases/latest",
-  "notes": "内置模板改放到 文档\EVE\templates，升级后自动清理程序目录下的旧 templates；程序更名为 EVE BOX，新增查看聊天记录、配置方案导入、种菜/装配/总览模板导入、星系间距查询；内置模板编进主程序"
+  "notes": "内置模板改放到 文档\\EVE\\templates，升级后自动清理程序目录下的旧 templates；程序更名为 EVE BOX，新增查看聊天记录、配置方案导入、种菜/装配/总览模板导入、星系间距查询；内置模板编进主程序"
 }
