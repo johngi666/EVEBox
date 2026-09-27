@@ -141,6 +141,11 @@ The naming rules are unusual, so read this before changing code:
 
 ## Changelog
 
+### v6.15 (September 28, 2026)
+- Fixed the System Distance tool failing to load system data on the Infinity / Serenity servers; system data for all three servers is now packed into the executable, so it works offline with no download needed
+- Improved system data fetching (streaming reads + automatic retries) for better resilience on unstable connections
+- Minor updates to the built-in help page
+
 ### v6.14 (September 24, 2026)
 - Built-in templates now extract to `Documents\EVE\templates\<module>\` instead of next to the executable, so the app works from any location (temp folder, Program Files, ...)
 - On upgrade, the leftover `templates` folder next to the executable is sent to the Recycle Bin; if it holds files you added yourself, it is left untouched

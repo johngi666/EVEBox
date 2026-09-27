@@ -41,4 +41,15 @@
 			<LogicalName>EVEBoxTemplates/ZongLanMoBan/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
 		</EmbeddedResource>
 	</ItemGroup>
+
+	<!--
+		星系间距查询的三服星系数据（来源 c3q.cc，数据不常变动）：同样直接编译进 exe（EmbeddedResource），
+		运行时优先读内置数据，无需联网下载、不生成文件；仅内置资源缺失时才回退网络。
+		LogicalName 前缀 EVEBoxXingXiJuLi/ 供运行时识别。
+	-->
+	<ItemGroup>
+		<EmbeddedResource Include="OtherTools\XingXiJuLi\ShuJu\**\*.txt">
+			<LogicalName>EVEBoxXingXiJuLi/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+		</EmbeddedResource>
+	</ItemGroup>
 </Project>

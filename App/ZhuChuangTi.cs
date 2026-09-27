@@ -91,9 +91,14 @@ namespace EVEBox.App
         private readonly Button _btnGithub = new Button();
         private readonly Button _btnGitee = new Button();
 
-        private static readonly HttpClient _httpClient = new HttpClient
+        // 共享 HttpClient：开启 GZip/Deflate 自动解压（星系数据等接口可能压缩传输）；
+        // 超时放宽到 60 秒：大响应下载慢时 15 秒容易误杀，需要更短超时的调用方自行用 CancellationTokenSource 控制。
+        private static readonly HttpClient _httpClient = new HttpClient(new HttpClientHandler
         {
-            Timeout = TimeSpan.FromSeconds(15)
+            AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate
+        })
+        {
+            Timeout = TimeSpan.FromSeconds(60)
         };
         private string _currentServer = "曙光服 (Infinity)";
         private string _currentFolder;

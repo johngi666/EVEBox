@@ -1,6 +1,6 @@
 {
-  "version": "v6.14",
-  "downloadUrl": "https://gitee.com/minisangel/EVEBox/releases/download/v6.14/EVEBOX_v6.14.zip",
+  "version": "v6.15",
+  "downloadUrl": "https://gitee.com/minisangel/EVEBox/releases/download/v6.15/EVEBOX_v6.15.zip",
   "url": "https://github.com/johngi666/EVEBox/releases/latest",
-  "notes": "内置模板改放到 文档\\EVE\\templates，升级后自动清理程序目录下的旧 templates；程序更名为 EVE BOX，新增查看聊天记录、配置方案导入、种菜/装配/总览模板导入、星系间距查询；内置模板编进主程序"
+  "notes": "修复星系间距查询在曙光服/晨曦服加载失败的问题；三服星系数据已内置，打开即用、无需联网下载；星系数据获取逻辑强化（流式读取+自动重试），网络波动时更稳定；使用说明页小幅更新"
 }
