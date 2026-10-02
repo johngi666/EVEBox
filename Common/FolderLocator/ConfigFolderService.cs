@@ -46,15 +46,11 @@ namespace EVEBox.Common.FolderLocator
 
         public async Task AutoFindFolderAsync(Action updateUi = null)
         {
-            if (_isInitialized)
-            {
-                _logService.Log("自动查找文件夹", "跳过", "已初始化");
-                return;
-            }
+            // 已经初始化过就静默返回：这是第二次调用，不写日志
+            //（成功路径整体不记日志，避免每次开机都堆一串常态记录）
+            if (_isInitialized) return;
 
             updateUi?.Invoke();
-
-            _logService.Log("自动查找文件夹", _currentServer, "");
 
             string cachedPath = _configManager.GetCachedPath();
             string found = _folderFinder.AutoFind(_currentServer, cachedPath, null);
@@ -68,7 +64,7 @@ namespace EVEBox.Common.FolderLocator
             else
             {
                 _currentFolder = null;
-                _logService.Log("自动查找文件夹", "失败", "未找到设置文件夹");
+                // 失败日志由 ConfigFolderFinder 统一记录，这里不再重复记一遍
             }
 
             _isInitialized = true;

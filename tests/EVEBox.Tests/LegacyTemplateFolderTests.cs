@@ -97,11 +97,9 @@ public class LegacyTemplateFolderTests : IDisposable
     }
 
     [Theory]
-    [InlineData("PeiZhiFangAnDaoRu", "ConfigSchemeImport")]
     [InlineData("ZhongCaiMoBan", "PlantingTemplate")]
-    [InlineData("ZhuangPeiFangAn", "FittingPlan")]
     [InlineData("ZongLanMoBan", "OverviewTemplate")]
-    public void 四个模块的旧目录都能被识别并清理(string jiuMoKuai, string xinMoKuai)
+    public void 改过名的模块旧目录会被识别并清理(string jiuMoKuai, string xinMoKuai)
     {
         BuiltInTemplateResource.QueBaoDaoChu(_root);
         CopyDir(Path.Combine(_root, xinMoKuai), Path.Combine(_root, jiuMoKuai));
@@ -111,6 +109,40 @@ public class LegacyTemplateFolderTests : IDisposable
         Assert.Equal(1, qingLi);
         Assert.False(Directory.Exists(Path.Combine(_root, jiuMoKuai)));
         Assert.True(Directory.Exists(Path.Combine(_root, xinMoKuai)));
+    }
+
+    [Theory]
+    [InlineData("PeiZhiFangAnDaoRu")]
+    [InlineData("ZhuangPeiFangAn")]
+    public void 非内置模块的同名目录不会被清理(string feiNeiZhiMuKuai)
+    {
+        // 回归用例：这两个目录名历史上出现过，但它们并不是内置模块
+        //（内置模块只有 ConfigSchemeImport / PlantingTemplate / FittingPlan / OverviewTemplate）。
+        // 绝不能把它们写进「旧名映射」去删——曾这么干过，把用户机器上的目录清掉了。
+        Directory.CreateDirectory(Path.Combine(_root, feiNeiZhiMuKuai));
+        File.WriteAllText(Path.Combine(_root, feiNeiZhiMuKuai, "留存.txt"), "内容");
+
+        int qingLi = BuiltInTemplateResource.QingLiJiuMoKuaiMuLu(_root);
+
+        Assert.Equal(0, qingLi);
+        Assert.True(Directory.Exists(Path.Combine(_root, feiNeiZhiMuKuai)), "非内置模块目录不应被清理");
+        Assert.True(File.Exists(Path.Combine(_root, feiNeiZhiMuKuai, "留存.txt")));
+    }
+
+    [Fact]
+    public void 新名目录不存在时不动旧名目录()
+    {
+        // 安全闸：新名目录还没被释放过（例如用户回退到老版本运行），
+        // 此时旧目录仍是有效数据，删掉会变成空壳。
+        BuiltInTemplateResource.QueBaoDaoChu(_root);
+        // 只留旧目录，把新目录移走
+        Directory.Move(Path.Combine(_root, "PlantingTemplate"), Path.Combine(_root, "ZhongCaiMoBan"));
+
+        int qingLi = BuiltInTemplateResource.QingLiJiuMoKuaiMuLu(_root);
+
+        Assert.Equal(0, qingLi);
+        Assert.True(Directory.Exists(Path.Combine(_root, "ZhongCaiMoBan")), "新目录不存在时旧目录必须保留");
+        Assert.NotEmpty(Directory.GetFiles(Path.Combine(_root, "ZhongCaiMoBan"), "*", SearchOption.AllDirectories));
     }
 
     [Fact]

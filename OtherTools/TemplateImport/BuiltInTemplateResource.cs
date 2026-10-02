@@ -94,16 +94,17 @@ namespace EVEBox.OtherTools.TemplateImport
         /// <summary>
         /// 内置模块目录的旧中文名 → 新英文名。
         ///
-        /// 模板模块目录在英文化后改了名（如 ZhongCaiMoBan → PlantingTemplate）。
-        /// 老用户的 文档\EVE\templates 下会留着旧目录，与新目录并排出现重复模板，
-        /// 所以启动时把旧目录清掉——但只清「内容全是内置原件」的，
-        /// 用户自己往里加的文件会保留整个目录（与程序目录旧 templates 的处理一致）。
+        /// 只列**真正改过名**的模块：模板模块目录英文化后换了名字
+        /// （如 ZhongCaiMoBan → PlantingTemplate），老用户的 文档\EVE\templates
+        /// 下会留着旧目录、与新目录并排出现重复模板，所以启动时清掉。
+        ///
+        /// 注意：不要把「当前版本仍在用的模块名」写进来。
+        /// PeiZhiFangAnDaoRu / ZhuangPeiFangAn 虽然也是拼音，但它们在改名前就是现役名、
+        /// 老版本仍在用；当旧目录删掉会让程序丢失内置模板（曾误删过一次）。
         /// </summary>
         private static readonly Dictionary<string, string> JiuMoKuaiMing = new(StringComparer.OrdinalIgnoreCase)
         {
-            ["PeiZhiFangAnDaoRu"] = "ConfigSchemeImport",
             ["ZhongCaiMoBan"] = "PlantingTemplate",
-            ["ZhuangPeiFangAn"] = "FittingPlan",
             ["ZongLanMoBan"] = "OverviewTemplate",
         };
 
@@ -135,6 +136,11 @@ namespace EVEBox.OtherTools.TemplateImport
                     if (string.Equals(Path.GetFullPath(jiuMuLu), Path.GetFullPath(xinMuLu),
                             StringComparison.OrdinalIgnoreCase))
                         continue;
+
+                    // 安全闸：新名目录还不存在就绝不删旧名目录。
+                    // 说明这台机器还没被新版本释放过新目录（例如用户回退到老版本运行），
+                    // 此时旧目录仍是有效数据；删了会变成空壳，程序找不到模板。
+                    if (!Directory.Exists(xinMuLu)) continue;
 
                     string yuWai = ZhaoChuFeiNeiZhiWenJian(jiuMuLu, pai.Value);
                     if (yuWai != null)

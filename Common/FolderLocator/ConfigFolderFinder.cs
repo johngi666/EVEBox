@@ -38,7 +38,8 @@ namespace EVEBox.Common.FolderLocator
             {
                 if (Directory.Exists(cachedPath))
                 {
-                    _logAction?.Invoke("自动查找文件夹", "缓存命中", cachedPath);
+                    // 正常启动都会走这里（缓存命中），不写日志——每次开机都出现的
+                    // 成功记录只是噪音，用户看操作日志时会被它挤掉真正有用的信息
                     return cachedPath;
                 }
             }
@@ -47,11 +48,12 @@ namespace EVEBox.Common.FolderLocator
 
             if (found != null)
             {
-                _logAction?.Invoke("自动查找文件夹", "成功", found);
+                // 同理：自动查找成功也不记日志（失败才记，见下）
                 _onFolderFound?.Invoke(found);
                 return found;
             }
 
+            // 失败要留痕：这是用户需要知道的信息（为什么没自动找到配置文件夹）
             _logAction?.Invoke("自动查找文件夹", "失败", "未找到设置文件夹");
             return null;
         }
@@ -131,19 +133,20 @@ namespace EVEBox.Common.FolderLocator
 
         /// <summary>
         /// 快速查找（注册表 → LOCALAPPDATA → 已知路径 → C/D/E 盘）
+        ///
+        /// 日志原则：只记「失败」与「异常」。
+        /// 查找过程（在哪几个位置找、找到了没）属排错用的追踪信息，
+        /// 正常启动每次都会出现，记进用户可见的操作日志只会把有用信息挤掉。
         /// </summary>
         public string QuickFind(string serverName)
         {
             if (!_serverKeywords.TryGetValue(serverName, out string keyword))
                 return null;
 
-            _logAction?.Invoke("快速查找", $"查找 {serverName} 配置", "");
-
             // ===== 0. 优先查注册表 =====
             string regPath = FindFromRegistry();
             if (regPath != null)
             {
-                _logAction?.Invoke("快速查找", "注册表命中", regPath);
                 return regPath;
             }
 
@@ -154,11 +157,9 @@ namespace EVEBox.Common.FolderLocator
                 string evePath = Path.Combine(localAppData, "CCP", "EVE");
                 if (Directory.Exists(evePath))
                 {
-                    _logAction?.Invoke("快速查找", $"检查 LOCALAPPDATA: {evePath}", "");
                     string folder = ScanDirectory(evePath, keyword);
                     if (folder != null)
                     {
-                        _logAction?.Invoke("快速查找", "成功", folder);
                         return folder;
                     }
                 }
@@ -171,11 +172,9 @@ namespace EVEBox.Common.FolderLocator
                 string ccpData = Path.Combine(programData, "CCP", "EVE");
                 if (Directory.Exists(ccpData))
                 {
-                    _logAction?.Invoke("快速查找", $"检查 ProgramData: {ccpData}", "");
                     string folder = ScanDirectory(ccpData, keyword);
                     if (folder != null)
                     {
-                        _logAction?.Invoke("快速查找", "成功", folder);
                         return folder;
                     }
                 }
@@ -192,11 +191,9 @@ namespace EVEBox.Common.FolderLocator
             {
                 if (Directory.Exists(steamPath))
                 {
-                    _logAction?.Invoke("快速查找", $"检查 Steam: {steamPath}", "");
                     string folder = ScanDirectory(steamPath, keyword);
                     if (folder != null)
                     {
-                        _logAction?.Invoke("快速查找", "成功", folder);
                         return folder;
                     }
                 }
@@ -216,7 +213,6 @@ namespace EVEBox.Common.FolderLocator
                     string folder = ScanDirectory(standardPath, keyword);
                     if (folder != null)
                     {
-                        _logAction?.Invoke("快速查找", "成功", folder);
                         return folder;
                     }
                 }
@@ -237,7 +233,6 @@ namespace EVEBox.Common.FolderLocator
                         string folder = ScanDirectory(basePath, keyword);
                         if (folder != null)
                         {
-                            _logAction?.Invoke("快速查找", "成功", folder);
                             return folder;
                         }
                     }
@@ -255,7 +250,6 @@ namespace EVEBox.Common.FolderLocator
                             string settingsPath = Path.Combine(dir, "settings_Default");
                             if (Directory.Exists(settingsPath))
                             {
-                                _logAction?.Invoke("快速查找", "成功", settingsPath);
                                 return settingsPath;
                             }
                         }

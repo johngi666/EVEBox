@@ -72,6 +72,9 @@ namespace EVEBox.App
         private readonly Panel _panelOverviewImport = new Panel();  // 总览模板导入
         private readonly List<Button> _toolButtons = new List<Button>();
         private readonly List<Panel> _toolPanels = new List<Panel>();
+
+        /// <summary>当前选中的「其他工具」二级项（构建界面时会先设默认项，仅记状态不加载）</summary>
+        private int _toolIndex;
         private readonly ChatLogView _liaoTianJiLuView;         // 查看聊天记录
         private readonly ConfigSchemeImportView _peiZhiFangAnDaoRuView;  // 配置方案导入
         private readonly SystemDistanceView _xingXiJuLiView;
@@ -216,9 +219,13 @@ namespace EVEBox.App
                 _leftPanel.LblTranquilityStatus
             );
 
-            BindEvents();
-
+            // 先设定下拉框选中项，再绑定事件。
+            // 顺序反了会出事：设置 SelectedItem 会触发 SelectedIndexChanged，
+            // 于是启动时先整跑一遍「切换服务器」流程，紧接着自动查找又跑一遍
+            //（日志里那套「快速查找 → 加载配置 → 切换服务器」会重复两次）。
             _cmbServer.SelectedItem = _currentServer;
+
+            BindEvents();
 
             _logService.Log("程序启动", "成功", "");
             _ = AutoFindFolderAsync();
@@ -617,6 +624,29 @@ namespace EVEBox.App
             _panelUpdate.Visible = index == LeftPanelBuilder.TabUpdate;
             _panelTools.Visible = index == LeftPanelBuilder.TabTools;
             _contentHost.ResumeLayout();
+
+            // 进入「其他工具」时才按需加载当前二级项的数据。
+            // 放在这里而不是只放在 SelectTool 里：切换二级项和切换主标签是两条路径，
+            // 两边都要能触发，否则第一次点进来会一直空白。
+            if (index == LeftPanelBuilder.TabTools)
+                EnsureToolLoaded(_toolIndex);
+        }
+
+        /// <summary>
+        /// 按需加载某个工具项的数据。
+        /// 只在面板**真的显示着**的时候加载：构建界面时会先调 SelectTool 设默认项，
+        /// 那时整页还不可见，不加判断就会在启动时白跑一遍扫描
+        ///（日志里「扫描完成：5 个角色，716 个日志文件」就是这么来的）。
+        /// </summary>
+        private void EnsureToolLoaded(int index)
+        {
+            if (index < 0 || index >= _toolPanels.Count) return;
+            if (!_panelTools.Visible || !_toolPanels[index].Visible) return;
+
+            if (_toolPanels[index] == _panelJumpDistance)
+                _ = _xingXiJuLiView.EnsureLoadedAsync();
+            else if (_toolPanels[index] == _panelLogViewer)
+                _ = _liaoTianJiLuView.EnsureLoadedAsync();
         }
 
         /// <summary>
@@ -634,13 +664,10 @@ namespace EVEBox.App
                     _toolPanels[i].Visible = active;
             }
 
-            // 切换到「星系间距查询」时自动加载数据
-            if (index < _toolPanels.Count && _toolPanels[index] == _panelJumpDistance)
-                _ = _xingXiJuLiView.EnsureLoadedAsync();
-
-            // 首次进「查看聊天记录」时懒加载扫描（只解析文件名）
-            if (index < _toolPanels.Count && _toolPanels[index] == _panelLogViewer)
-                _ = _liaoTianJiLuView.EnsureLoadedAsync();
+            // 懒加载：这里只记状态，不加载数据——构建界面时会先调一次设默认项，
+            // 那时整页还不可见，真正加载交给 ShowTab 在标签可见时触发
+            _toolIndex = index;
+            EnsureToolLoaded(index);
         }
 
         private Button CreateTabButton(Button btn, string text, Color backColor, Color foreColor, int width)
