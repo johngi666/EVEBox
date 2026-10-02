@@ -127,6 +127,12 @@ namespace EVEBox.App
 
             _logService = new LogService();
 
+            // 启动第一条就记下当前服务器：操作日志里最需要看到的就是「在用哪个服的配置」，
+            // 否则后面一串记录不知道是在操作什么。
+            // 配置目录路径在这一刻可能还没查出来（自动查找随后才跑），
+            // 查到后由「加载配置文件 - 成功」补齐。
+            _logService.Log("程序启动", "服务器", _currentServer);
+
             // 内置模板已编进 exe：首次运行（或文件缺失/损坏）时释放到 文档\EVE\templates
             BuiltInTemplateResource.QueBaoDaoChu(BuiltInTemplateResource.MoBanGenMuLu, _logService.Log);
 
@@ -227,7 +233,7 @@ namespace EVEBox.App
 
             BindEvents();
 
-            _logService.Log("程序启动", "成功", "");
+            // 「程序启动」日志已在构造函数开头记过（带服务器名），这里不再重复
             _ = AutoFindFolderAsync();
             _serverStatusManager.Start();
 
