@@ -9,6 +9,10 @@ publish/
 *.suo
 *.cache
 
+# 程序运行产生的本机配置（含用户的服务器/路径/角色信息，属个人数据，绝不入库）
+# 注意：程序用的是相对路径，从仓库根目录运行程序就会生成在根目录
+evesync_config.json
+
 # 系统文件
 Thumbs.db
 .DS_Store

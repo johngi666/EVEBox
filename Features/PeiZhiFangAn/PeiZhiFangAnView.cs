@@ -1,4 +1,4 @@
-﻿using EVEBox.Common.GongYong;
+using EVEBox.Common.GongYong;
 using EVEBox.OtherTools;
 using System;
 using System.Collections.ObjectModel;
@@ -345,38 +345,48 @@ namespace EVEBox.Features.PeiZhiFangAn
 
         private async void BtnBackup_Click(FangAn scheme)
         {
-            if (!Directory.Exists(scheme.FolderPath))
+            // async void 是事件处理器的必要形态，但异常会直接冒到未处理异常层导致程序崩掉，
+            // 必须在方法内兜住（Task.Run 内部的异常这里也一并接住）。
+            try
             {
-                ZiDingYiMessageBox.Show($"错误：方案文件夹不存在 [{scheme.Name}]", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            string backupPath = await Task.Run(() =>
-            {
-                try
+                if (!Directory.Exists(scheme.FolderPath))
                 {
-                    string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-                    string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                    string path = Path.Combine(desktop, $"{scheme.Name}_Backup_{timestamp}");
-                    Directory.CreateDirectory(path);
-                    CopyDirectoryContents(scheme.FolderPath, path);
-                    return path;
+                    ZiDingYiMessageBox.Show($"错误：方案文件夹不存在 [{scheme.Name}]", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
                 }
-                catch (Exception)
-                {
-                    AddLog("备份失败");
-                    return null;
-                }
-            });
 
-            if (backupPath != null)
-            {
-                AddLog($"备份完成 [{scheme.Name}] -> {backupPath}");
-                ZiDingYiMessageBox.Show($"备份完成\n保存路径: {backupPath}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                string backupPath = await Task.Run(() =>
+                {
+                    try
+                    {
+                        string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                        string path = Path.Combine(desktop, $"{scheme.Name}_Backup_{timestamp}");
+                        Directory.CreateDirectory(path);
+                        CopyDirectoryContents(scheme.FolderPath, path);
+                        return path;
+                    }
+                    catch (Exception)
+                    {
+                        AddLog("备份失败");
+                        return null;
+                    }
+                });
+
+                if (backupPath != null)
+                {
+                    AddLog($"备份完成 [{scheme.Name}] -> {backupPath}");
+                    ZiDingYiMessageBox.Show($"备份完成\n保存路径: {backupPath}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    ZiDingYiMessageBox.Show("备份失败", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                ZiDingYiMessageBox.Show("备份失败", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                AddLog($"备份异常 [{scheme?.Name}]: {ex.Message}");
+                ZiDingYiMessageBox.Show($"备份异常: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

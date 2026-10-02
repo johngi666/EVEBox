@@ -17,6 +17,7 @@ namespace EVEBox.Features.PeiZhiTongBu
         private readonly WenJianTongBuManager _fileSyncManager;
         private readonly ZiDuanYingSheService _fieldMappingService;
         private readonly Action<string, string, string> _logAction;
+        private readonly TongBuHeXin _syncCore = new TongBuHeXin();
 
         public TongBuService(
             WenJianTongBuManager fileSyncManager = null,
@@ -68,31 +69,20 @@ namespace EVEBox.Features.PeiZhiTongBu
             Action<string> logAction)
         {
             string currentFolder = getCurrentFolder?.Invoke();
-            if (string.IsNullOrEmpty(currentFolder) || !Directory.Exists(currentFolder))
+
+            // 盘点与「能不能同步」的规则交给 TongBuHeXin（纯逻辑、可测），这里只负责提示
+            var inventory = _syncCore.Inventory(currentFolder);
+
+            if (!inventory.CanSync)
             {
-                ZiDingYiMessageBox.Show("请先选择EVE配置文件夹", "错误", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                bool folderMissing = string.IsNullOrEmpty(currentFolder) || !Directory.Exists(currentFolder);
+                ZiDingYiMessageBox.Show(
+                    inventory.Message,
+                    folderMissing ? "错误" : "提示",
+                    MessageBoxButtons.OK,
+                    folderMissing ? MessageBoxIcon.Warning : MessageBoxIcon.Information);
                 return;
             }
-
-            // 获取所有用户文件和角色文件
-            var userFiles = GetFilesByPattern(currentFolder, @"^core_user_\d+\.dat$")
-                .Where(f => !f.StartsWith("core_user_.dat")).ToList();
-            var charFiles = GetFilesByPattern(currentFolder, @"^core_char_\d+\.dat$")
-                .Where(f => !f.StartsWith("core_char_.dat")).ToList();
-
-            // 过滤异常文件
-            userFiles = userFiles.Where(f => !IsAbnormalFileName(f)).ToList();
-            charFiles = charFiles.Where(f => !IsAbnormalFileName(f)).ToList();
-
-            if (userFiles.Count <= 1 && charFiles.Count <= 1)
-            {
-                ZiDingYiMessageBox.Show("没有足够的文件进行覆盖操作\n每个类型至少需要2个文件", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            // ★★★ 修复：使用 System.IO.File.GetLastWriteTime ★★★
-            var latestUser = userFiles.OrderByDescending(f => System.IO.File.GetLastWriteTime(Path.Combine(currentFolder, f))).FirstOrDefault();
-            var latestChar = charFiles.OrderByDescending(f => System.IO.File.GetLastWriteTime(Path.Combine(currentFolder, f))).FirstOrDefault();
 
             logAction?.Invoke("开始覆盖操作 - 完整覆盖");
             try
@@ -101,9 +91,9 @@ namespace EVEBox.Features.PeiZhiTongBu
                 await refreshFileList?.Invoke();
                 ZiDingYiMessageBox.Show("完整覆盖完成！", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-            catch (IOException ioEx) when (ioEx.Message.Contains("被占用") || ioEx.Message.Contains("used"))
+            catch (IOException ioEx) when (_syncCore.IsFileInUseError(ioEx.Message))
             {
-                logAction?.Invoke($"完整覆盖失败: 文件被占用");
+                logAction?.Invoke("完整覆盖失败: 文件被占用");
                 ZiDingYiMessageBox.Show(
                     $"覆盖失败！\n\n部分文件被其他程序占用（可能是 EVE 客户端正在运行）。\n请关闭所有 EVE 客户端后重试。\n\n{ioEx.Message}",
                     "文件被占用",
@@ -115,28 +105,6 @@ namespace EVEBox.Features.PeiZhiTongBu
                 logAction?.Invoke($"完整覆盖失败: {ex.Message}");
                 ZiDingYiMessageBox.Show($"覆盖失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }
-
-        /// <summary>
-        /// 判断是否为异常文件名
-        /// </summary>
-        private bool IsAbnormalFileName(string fileName)
-        {
-            if (string.IsNullOrEmpty(fileName))
-                return true;
-
-            string[] abnormalPatterns = {
-                "('char'", "('user'", "None", "dat')",
-                "('", "')", ".dat.dat", ".."
-            };
-
-            foreach (var pattern in abnormalPatterns)
-            {
-                if (fileName.Contains(pattern))
-                    return true;
-            }
-
-            return false;
         }
 
         #endregion
@@ -161,25 +129,6 @@ namespace EVEBox.Features.PeiZhiTongBu
         public string ExtractBaseName(string title)
         {
             return _fieldMappingService.ExtractBaseName(title);
-        }
-
-        #endregion
-
-        #region 工具方法
-
-        private List<string> GetFilesByPattern(string folder, string pattern)
-        {
-            var files = new List<string>();
-            if (!Directory.Exists(folder))
-                return files;
-
-            foreach (string file in Directory.GetFiles(folder))
-            {
-                string name = Path.GetFileName(file);
-                if (Regex.IsMatch(name, pattern))
-                    files.Add(name);
-            }
-            return files;
         }
 
         #endregion

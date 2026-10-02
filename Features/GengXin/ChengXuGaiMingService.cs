@@ -183,7 +183,10 @@ namespace EVEBox.Features.GengXin
 
                 string[] wenJian = null;
                 try { wenJian = Directory.GetFiles(m, "*.lnk", SearchOption.AllDirectories); }
-                catch { }
+                catch
+                {
+                    // 个别快捷方式目录无权限读取属正常，跳过该目录即可（不影响其他位置）
+                }
 
                 if (wenJian == null)
                     continue;

@@ -1,4 +1,4 @@
-﻿using EVEBox.App;
+using EVEBox.App;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -85,7 +85,11 @@ namespace EVEBox.Common.WenJianJia
                                             return settingsPath;
                                     }
                                 }
-                                catch { }
+                                catch (Exception ex)
+                                {
+                                    // 某些目录无权限遍历属正常情况，但要知道是哪个目录出的问题
+                                    _logAction?.Invoke("注册表查找", "跳过目录", $"{expanded} - {ex.Message}");
+                                }
                             }
                         }
                     }
@@ -116,7 +120,11 @@ namespace EVEBox.Common.WenJianJia
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex)
+            {
+                // 注册表读取失败不该静默：查不到文件夹时这是关键线索
+                _logAction?.Invoke("注册表查找", "失败", ex.Message);
+            }
 
             return null;
         }
@@ -279,7 +287,11 @@ namespace EVEBox.Common.WenJianJia
                     }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex)
+            {
+                // 快速查找失败同样要留痕，否则用户只看到"没找到"
+                _logAction?.Invoke("快速查找", "失败", $"{basePath} - {ex.Message}");
+            }
             return null;
         }
 
@@ -378,8 +390,14 @@ namespace EVEBox.Common.WenJianJia
                     if (result != null) return result;
                 }
             }
-            catch (UnauthorizedAccessException) { }
-            catch (Exception) { }
+            catch (UnauthorizedAccessException)
+            {
+                // 全盘扫描碰到无权限目录属常态，跳过即可（不记日志，避免刷屏）
+            }
+            catch (Exception ex)
+            {
+                _logAction?.Invoke("深度搜索", "跳过目录", $"{basePath} - {ex.Message}");
+            }
 
             return null;
         }

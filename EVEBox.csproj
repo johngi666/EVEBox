@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<!-- 基础配置 -->
 		<OutputType>WinExe</OutputType>
@@ -13,12 +13,20 @@
 		<!-- 发布配置：生成单个文件 -->
 		<PublishSingleFile>true</PublishSingleFile>
 		<SelfContained>true</SelfContained>
-		<PublishReadyToRun>true</PublishReadyToRun>
+		<!--
+			PublishReadyToRun 实测不划算（2026-10-02 在本机对比）：
+			  开启: exe 175.4 MB，发布耗时 37.8 秒，启动平均 314 ms
+			  关闭: exe 159.3 MB，发布耗时  2.6 秒，启动平均 327 ms
+			即用 16.1 MB 体积 + 14 倍打包时间，只换到约 13 ms 启动差异（在噪声范围内）。
+			用户解压即用，体积与下载速度更重要，故关闭。
+			若日后确实需要更快冷启动，改回 true 即可，其余不变。
+		-->
+		<PublishReadyToRun>false</PublishReadyToRun>
 		<PublishTrimmed>false</PublishTrimmed>
 		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 
-		<!-- 排除测试目录，避免被主项目编译 -->
-		<DefaultItemExcludes>$(DefaultItemExcludes);tests\**</DefaultItemExcludes>
+		<!-- 排除测试目录与工具目录，避免被主项目编译 -->
+		<DefaultItemExcludes>$(DefaultItemExcludes);tests\**;tools\**</DefaultItemExcludes>
 	</PropertyGroup>
 
 	<!--

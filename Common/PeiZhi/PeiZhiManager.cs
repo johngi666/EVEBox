@@ -1,4 +1,4 @@
-﻿using EVEBox.Features.PeiZhiFangAn;
+using EVEBox.Features.PeiZhiFangAn;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -111,7 +111,10 @@ namespace EVEBox.Common.PeiZhi
                 if (!string.IsNullOrEmpty(_config.CachedPath) && Directory.Exists(_config.CachedPath))
                     return _config.CachedPath;
             }
-            catch (Exception) { }
+            catch
+            {
+                // 缓存路径不可用（盘符不存在、权限不足等）按"没有缓存"处理，走后续查找流程
+            }
             return null;
         }
 

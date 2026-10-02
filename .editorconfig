@@ -1,0 +1,144 @@
+# EVEBox 代码风格与命名约定
+#
+# 目的：把项目共识（见交接文档「命名约定」）交给编辑器与编译器强制，
+# 减少靠人眼发现的问题。默认只报「建议（suggestion）」，不阻断构建；
+# 确实想拦下来的规则见文件末尾的「按错误处理」一节。
+
+root = true
+
+# ============================================================
+# 全局：所有文件
+# ============================================================
+[*]
+charset = utf-8-bom
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+# Markdown / JSON / YAML 用 2 空格，且不加 BOM
+[*.{md,json,yml,yaml}]
+indent_size = 2
+charset = utf-8
+
+[*.csproj]
+indent_size = 2
+
+[*.ps1]
+indent_size = 4
+# 必须带 BOM：Windows PowerShell 5.1 在没有 BOM 时会按 GBK 解读含中文的脚本，
+# 导致字符串被截断、脚本报语法错误（本项目踩过一次）。
+charset = utf-8-bom
+
+# ============================================================
+# C# 基础风格
+# ============================================================
+[*.cs]
+indent_size = 4
+
+# 不用 var 的地方明确写类型（本项目大量使用显式类型，保持一致性）
+csharp_style_var_for_built_in_types = false:suggestion
+csharp_style_var_when_type_is_apparent = false:suggestion
+csharp_style_var_elsewhere = false:suggestion
+
+# 命名空间 / using
+csharp_style_namespace_declarations = block_scoped:suggestion
+dotnet_sort_system_directives_first = true
+csharp_using_directive_placement = outside_namespace:suggestion
+
+# 现代语法偏好（与现有代码风格一致）
+csharp_prefer_braces = true:suggestion
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
+dotnet_style_predefined_type_for_member_access = true:suggestion
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
+dotnet_style_qualification_for_event = false:suggestion
+
+# string 比较一律显式指定比较方式（避免依赖当前区域文化）
+dotnet_style_prefer_string_comparison = true
+
+# ============================================================
+# 命名约定
+# ============================================================
+# 说明：类型名/文件名用中文拼音（如 ZhuChuangTi、PeiZhiManager），
+# 这属于人工约定，无法用规则自动校验，评审时仍需注意。
+# 特别注意：「模板」统一写 MoBan，不要写 MuBan。
+# 下面这些是可以自动强制的部分。
+
+dotnet_naming_rule.private_field_underscore.severity = suggestion
+dotnet_naming_rule.private_field_underscore.symbols = private_fields
+dotnet_naming_rule.private_field_underscore.style = underscore_camel
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+
+dotnet_naming_style.underscore_camel.capitalization = camel_case
+dotnet_naming_style.underscore_camel.required_prefix = _
+
+dotnet_naming_rule.interfaces_start_with_i.severity = suggestion
+dotnet_naming_rule.interfaces_start_with_i.symbols = interfaces
+dotnet_naming_rule.interfaces_start_with_i.style = i_pascal
+
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+
+dotnet_naming_style.i_pascal.capitalization = pascal_case
+dotnet_naming_style.i_pascal.required_prefix = I
+
+# ============================================================
+# 高价值诊断：只开真正有用的，避免刷屏
+# ============================================================
+dotnet_diagnostic.CA2007.severity = none      # 本项目是 WinForms，不需要处处 ConfigureAwait
+
+# 异步：能用 async/await 就别用 .Result / .Wait()（本次已修过同类问题）
+dotnet_diagnostic.CA1849.severity = warning   # 调用 Task 上非 await 的方法
+dotnet_diagnostic.CA2016.severity = warning   # 把 Task 传给需要 ValueTask 的位置
+
+# 资源释放
+dotnet_diagnostic.CA2000.severity = warning   # 未释放 IDisposable
+
+# 说明：CA2213 在 WinForms 项目里误报率极高——它要求每个控件字段都显式 Dispose，
+# 但控件的生命周期由父窗体的 Dispose(bool) 统一管理，逐个释放反而是错的写法。
+# 本项目实测触发 186 条，全部属于此类，故关闭。
+dotnet_diagnostic.CA2213.severity = none
+
+# 无用 / 可疑代码
+dotnet_diagnostic.CA1823.severity = warning   # 私有字段未使用
+dotnet_diagnostic.CS0168.severity = warning   # 变量已赋值但从未使用
+dotnet_diagnostic.CS0219.severity = warning   # 变量赋值给自己
+dotnet_diagnostic.CS0642.severity = warning   # 检测到空的可空性检查
+dotnet_diagnostic.CS4014.severity = warning   # 属性未赋值
+
+# 字符串比较
+dotnet_diagnostic.CA1307.severity = suggestion  # 大小写敏感比较应显式指定
+dotnet_diagnostic.CA1310.severity = suggestion  # 忽略大小写比较应显式指定
+
+# ============================================================
+# 忽略的目录
+# ============================================================
+[**/obj/**]
+generated_code = true
+
+[**/bin/**]
+generated_code = true
+
+# ============================================================
+# CA2000 误报豁免：以下位置的对象所有权已经转移，不是泄漏
+# ============================================================
+# 1) new ZhuChuangTi() 交给 Application.Run：窗体由消息循环负责释放
+[App/ChengXu.cs]
+dotnet_diagnostic.CA2000.severity = none
+
+# 2) 延迟隐藏列表的 Timer：在自己的 Tick 里 Stop + Dispose
+[OtherTools/XingXiJuLi/XingXiJuLiView.cs]
+dotnet_diagnostic.CA2000.severity = none
+
+[Common/FuWuQiZhuangTai/FuWuQiZhuangTaiManager.cs]
+dotnet_diagnostic.CA2000.severity = none
+
+# 3) 往 MemoryStream 写数据：纯内存操作、不产生 I/O 阻塞，
+#    改成 WriteAsync 只会多一层状态机开销，这里保持同步写法
+[OtherTools/XingXiJuLi/C3qXingXiShuJuYuan.cs]
+dotnet_diagnostic.CA1849.severity = none

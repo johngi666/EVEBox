@@ -59,7 +59,7 @@ namespace EVEBox.Features.GengXin
                         : root.TryGetProperty("url", out var u) ? u.GetString() : YingYongXinXi.ReleasesUrl;
                     string notes = root.TryGetProperty("notes", out var n) ? n.GetString() : "";
 
-                    if (IsNewerVersion(remoteVersion, YingYongXinXi.Version))
+                    if (BanBenHao.GengXin(remoteVersion, YingYongXinXi.Version))
                     {
                         // 同一版本本次运行只提醒一次（点"稍后提醒"后不再重复弹）
                         if (remoteVersion == _lastNotifiedVersion)
@@ -149,34 +149,6 @@ namespace EVEBox.Features.GengXin
             catch (Exception ex)
             {
                 _logAction?.Invoke("自动更新", "异常", ex.Message);
-            }
-        }
-
-        private static bool IsNewerVersion(string remote, string local)
-        {
-            try
-            {
-                // 解析 "v5.3" 格式
-                int[] Parse(string v) => v.TrimStart('v', 'V')
-                    .Split('.')
-                    .Select(s => int.TryParse(s, out int n) ? n : 0)
-                    .ToArray();
-
-                int[] r = Parse(remote);
-                int[] l = Parse(local);
-
-                int len = Math.Max(r.Length, l.Length);
-                for (int i = 0; i < len; i++)
-                {
-                    int rv = i < r.Length ? r[i] : 0;
-                    int lv = i < l.Length ? l[i] : 0;
-                    if (rv != lv) return rv > lv;
-                }
-                return false; // 版本相同
-            }
-            catch
-            {
-                return false;
             }
         }
     }

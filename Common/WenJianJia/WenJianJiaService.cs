@@ -1,4 +1,4 @@
-﻿using EVEBox.App;
+using EVEBox.App;
 using EVEBox.Common.GongYong;
 using EVEBox.Common.PeiZhi;
 using EVEBox.Features.RiZhi;
@@ -108,7 +108,10 @@ namespace EVEBox.Common.WenJianJia
                         return;
                     }
 
-                    found = task.Result;
+                    // 用 await 取结果，不要用 task.Result：
+                    // 上面一边泵消息一边阻塞等待，.Result 会把异常包成 AggregateException，
+                    // 且在 UI 线程上阻塞等待是死锁的经典诱因。
+                    found = await task;
                 }
                 catch (Exception ex)
                 {

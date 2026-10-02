@@ -1,0 +1,36 @@
+# EVEBox 持续集成：构建 + 全量单元测试
+#
+# 说明：
+# - 项目是 WinForms（net8.0-windows），所以必须用 Windows 运行器。
+# - 主发布源是 Gitee；这里跑的是 GitHub 镜像，属额外保障，不替代本地验证。
+# - 用例数基线：v6.15 时为 86 个，后续新增用例数应只增不减。
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 .NET SDK（版本由 global.json 决定）
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: 还原依赖
+        run: dotnet restore EVEBox.sln
+
+      - name: 构建（警告视为需关注）
+        run: dotnet build EVEBox.sln --no-restore -v q --nologo
+
+      - name: 跑全量单元测试
+        run: dotnet test tests/EVEBox.Tests/EVEBox.Tests.csproj --no-build --nologo

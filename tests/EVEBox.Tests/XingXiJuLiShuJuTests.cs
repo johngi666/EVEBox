@@ -15,7 +15,9 @@ public class XingXiJuLiShuJuTests
 {
     private static async Task<C3qXingXiShuJuYuan> LoadYuanAsync(XingXiFuWuQi fwq)
     {
-        var yuan = new C3qXingXiShuJuYuan(fwq, new HttpClient());
+        // 数据已内置在程序集里，这里的 HttpClient 只是构造参数，往回收站/网络兜底路径不会走到
+        using var http = new HttpClient();
+        var yuan = new C3qXingXiShuJuYuan(fwq, http);
         await yuan.LoadAsync(_ => { });
         return yuan;
     }

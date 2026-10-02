@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using EVEBox.Common.GongYong;
 
 
 
@@ -267,22 +268,15 @@ namespace EVEBox.Features.PeiZhiTongBu
 
             foreach (var backup in backups)
             {
-                try
+                // 备份属用户数据：删除走回收站，误删可捞回（项目规则第 1 条）
+                if (HuiShouZhan.ShanChu(backup.Path, out string error))
                 {
-                    if (backup.IsFile)
-                    {
-                        System.IO.File.Delete(backup.Path);
-                    }
-                    else
-                    {
-                        Directory.Delete(backup.Path, true);
-                    }
                     deleted++;
-                    logAction?.Invoke($"  已删除: {backup.Name}");
+                    logAction?.Invoke($"  已移入回收站: {backup.Name}");
                 }
-                catch (Exception ex)
+                else
                 {
-                    logAction?.Invoke($"  删除失败: {backup.Name} - {ex.Message}");
+                    logAction?.Invoke($"  删除失败: {backup.Name} - {error}");
                 }
             }
 

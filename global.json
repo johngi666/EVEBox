@@ -1,0 +1,9 @@
+{
+  "//": "锁定 SDK 大版本，避免换机器（或 CI）时行为漂移。",
+  "//rollForward": "latestFeature：允许使用 10.0.x 里更新的补丁/特性带，但不跨到 11。",
+  "sdk": {
+    "version": "10.0.401",
+    "rollForward": "latestFeature",
+    "allowPrerelease": false
+  }
+}

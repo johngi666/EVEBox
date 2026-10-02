@@ -1,4 +1,4 @@
-﻿using EVEBox.Features.BeiFen;
+using EVEBox.Features.BeiFen;
 using EVEBox.Common.FuWuQiZhuangTai;
 using EVEBox.Features.GengXin;
 using EVEBox.Common.GongYong;
@@ -1041,7 +1041,19 @@ namespace EVEBox.App
         private async void BtnCheckUpdate_Click(object sender, EventArgs e)
         {
             _logService.Log("版本检查", "手动触发", "");
-            await _updateService.CheckForUpdatesAsync(showResultWhenUpToDate: true);
+
+            // async void 是事件处理器的必要形态，异常必须在这里兜住，
+            // 否则会冒到未处理异常层，用户只看到程序崩掉。
+            try
+            {
+                await _updateService.CheckForUpdatesAsync(showResultWhenUpToDate: true);
+            }
+            catch (Exception ex)
+            {
+                _logService.Log("版本检查", "异常", ex.Message);
+                ZiDingYiMessageBox.Show($"版本检查出错: {ex.Message}", "版本检查",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void ApplyTheme(bool isDark)

@@ -18,6 +18,7 @@ namespace EVEBox.Features.BeiFen
         private readonly WenJianTongBuManager _fileSyncManager;
         private readonly RiZhiService _logService;
         private readonly PeiZhiManager _configManager;
+        private readonly BeiFenHeXin _backupCore = new BeiFenHeXin();
         private readonly Func<string> _getCurrentFolder;
         private readonly Action<Action> _invokeOnUI;
         private readonly Action _refreshBackupList;
@@ -50,19 +51,22 @@ namespace EVEBox.Features.BeiFen
                 return;
             }
 
-            try
+            // 文件操作交给 BeiFenHeXin（纯逻辑、可测），这里只负责提示
+            var result = _backupCore.BackupWholeFolder(
+                currentFolder,
+                (string basePath) => _fileSyncManager.BackupFolder(currentFolder, msg => _logService.Log("备份", msg, ""), basePath),
+                _configManager.GetBackupPath());
+
+            if (!result.Success)
             {
-                string backupBasePath = _configManager.GetBackupPath();
-                string backupPath = _fileSyncManager.BackupFolder(currentFolder, msg => _logService.Log("备份", msg, ""), backupBasePath);
-                _refreshBackupList?.Invoke();
-                ZiDingYiMessageBox.Show($"备份完成！\n保存路径: {backupPath}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                _logService.Log("备份", "成功", backupPath);
+                ZiDingYiMessageBox.Show($"备份失败: {result.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _logService.Log("备份", "失败", result.Message);
+                return;
             }
-            catch (Exception ex)
-            {
-                ZiDingYiMessageBox.Show($"备份失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                _logService.Log("备份", "失败", ex.Message);
-            }
+
+            _refreshBackupList?.Invoke();
+            ZiDingYiMessageBox.Show($"备份完成！\n保存路径: {result.Path}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            _logService.Log("备份", "成功", result.Path);
         }
 
         public void DeleteAllBackups()
@@ -92,38 +96,34 @@ namespace EVEBox.Features.BeiFen
                 return;
             }
 
-            var result = ZiDingYiMessageBox.Show(
+            var confirm = ZiDingYiMessageBox.Show(
                 $"确定要从备份还原吗？\n\n备份: {item.DisplayName}\n目标: {currentFolder}",
                 "确认还原",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question);
 
-            if (result == DialogResult.Yes)
+            if (confirm == DialogResult.Yes)
             {
                 // ★★★ 检测 EVE 客户端（还原会覆盖文件）★★★
                 EveKeHuDuanGuard.EnsureNoClient();
 
-                try
+                var result = _backupCore.Restore(
+                    item,
+                    currentFolder,
+                    (source, destination) => _fileSyncManager.CopyDirectory(source, destination));
+
+                if (result.Success)
                 {
-                    if (item.IsFile)
-                    {
-                        string destPath = Path.Combine(currentFolder, item.Name);
-                        System.IO.File.Copy(item.Path, destPath, true);
-                    }
-                    else
-                    {
-                        _fileSyncManager.CopyDirectory(item.Path, currentFolder);
-                    }
                     _refreshBackupList?.Invoke();
                     // ★★★ 还原后刷新文件列表（用户/角色表格立即反映还原结果）★★★
                     _refreshFileList?.Invoke();
                     ZiDingYiMessageBox.Show("还原完成", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     _logService.Log("还原备份", "成功", item.Name);
                 }
-                catch (Exception ex)
+                else
                 {
-                    ZiDingYiMessageBox.Show($"还原失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    _logService.Log("还原备份", "失败", ex.Message);
+                    ZiDingYiMessageBox.Show($"还原失败: {result.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    _logService.Log("还原备份", "失败", result.Message);
                 }
             }
         }
@@ -145,32 +145,25 @@ namespace EVEBox.Features.BeiFen
 
         public void DeleteBackup(BeiFenXiang item)
         {
-            var result = ZiDingYiMessageBox.Show(
+            var confirm = ZiDingYiMessageBox.Show(
                 $"确定要删除备份: {item.DisplayName}？",
                 "确认删除",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Warning);
 
-            if (result == DialogResult.Yes)
+            if (confirm == DialogResult.Yes)
             {
-                try
+                // 备份属用户数据：删除走回收站，误删可捞回（项目规则第 1 条）
+                if (HuiShouZhan.ShanChu(item.Path, out string error))
                 {
-                    if (item.IsFile)
-                    {
-                        System.IO.File.Delete(item.Path);
-                    }
-                    else
-                    {
-                        Directory.Delete(item.Path, true);
-                    }
                     _refreshBackupList?.Invoke();
-                    ZiDingYiMessageBox.Show("删除成功", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    _logService.Log("删除备份", "成功", item.Name);
+                    ZiDingYiMessageBox.Show("已移入回收站", "删除成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    _logService.Log("删除备份", "成功", $"已移入回收站: {item.Name}");
                 }
-                catch (Exception ex)
+                else
                 {
-                    ZiDingYiMessageBox.Show($"删除失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    _logService.Log("删除备份", "失败", ex.Message);
+                    ZiDingYiMessageBox.Show($"删除失败: {error}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    _logService.Log("删除备份", "失败", error);
                 }
             }
         }
@@ -183,39 +176,21 @@ namespace EVEBox.Features.BeiFen
 
         public string BackupSingleFile(string filePath)
         {
-            if (string.IsNullOrEmpty(filePath) || !System.IO.File.Exists(filePath))
+            var result = _backupCore.BackupSingleFile(filePath, _configManager.GetBackupPath());
+
+            if (!result.Success)
             {
-                ZiDingYiMessageBox.Show("文件不存在", "错误", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                // 文件不存在属于用户操作问题，用「错误」图标提示与原来一致
+                ZiDingYiMessageBox.Show(result.Message, "错误", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                _logService.Log("备份单个文件", "失败", result.Message);
                 return null;
             }
 
-            try
-            {
-                string baseBackupDir = _configManager.GetBackupPath();
-                if (!Directory.Exists(baseBackupDir))
-                    Directory.CreateDirectory(baseBackupDir);
+            _refreshBackupList?.Invoke();
+            _logService.Log("备份单个文件", "成功", Path.GetFileName(result.Path));
+            ZiDingYiMessageBox.Show($"文件备份完成！\n保存路径: {result.Path}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                string fileName = Path.GetFileName(filePath);
-                string backupPath = Path.Combine(baseBackupDir, fileName);
-
-                System.IO.File.Copy(filePath, backupPath, true);
-
-                // 修改备份文件的修改时间为当前时间
-                System.IO.File.SetLastWriteTime(backupPath, DateTime.Now);
-
-                _refreshBackupList?.Invoke();
-
-                _logService.Log("备份单个文件", "成功", fileName);
-                ZiDingYiMessageBox.Show($"文件备份完成！\n保存路径: {backupPath}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                return backupPath;
-            }
-            catch (Exception ex)
-            {
-                _logService.Log("备份单个文件", "失败", ex.Message);
-                ZiDingYiMessageBox.Show($"备份失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return null;
-            }
+            return result.Path;
         }
     }
 }

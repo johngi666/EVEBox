@@ -160,7 +160,7 @@ namespace EVEBox.OtherTools.XingXiJuLi
                     int n;
                     while ((n = await stream.ReadAsync(chunk, 0, chunk.Length)) > 0)
                     {
-                        buffer.Write(chunk, 0, n);
+                        buffer.Write(chunk, 0, n); // 内存缓冲，不涉及 I/O 阻塞，无需 WriteAsync
                         readBytes += n;
                     }
 
