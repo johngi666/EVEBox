@@ -75,7 +75,7 @@ All four import tools work the same way:
 | Backup folder | Default `Desktop\EVE配置备份`, changeable in the config file |
 | Game settings | `%LOCALAPPDATA%\CCP\EVE\...\settings_Default` (auto-detected, can be set manually) |
 | Chat logs | `Documents\EVE\logs\Chatlogs` (chat logging must be enabled in game) |
-| Built-in templates | Source in `OtherTools\<module>\MoBan\`, packed into the executable and extracted to `Documents\EVE\templates\<module>\` on first run; an old `templates` folder next to the executable is sent to the Recycle Bin |
+| Built-in templates | Source in `OtherTools\<module>\MoBan\` (modules such as `PlantingTemplate` / `FittingPlan` / `OverviewTemplate` / `ConfigSchemeImport`), packed into the executable and extracted to `Documents\EVE\templates\<module>\` on first run; an old `templates` folder next to the executable is sent to the Recycle Bin |
 | Exported chat logs | Desktop, named `<character>_<from>-<to>.txt` (never overwrites — adds `(2)` if it exists) |
 
 ## Developer Guide
@@ -105,26 +105,26 @@ dotnet publish -c Release
 EVEBox/
 ├── App/                      Application shell and UI framework (main form, title bar, panels, theme)
 ├── Common/                   Shared infrastructure
-│   ├── PeiZhi/               Unified configuration, server info, character cache
-│   ├── WenJianJia/           Locating and validating game settings folders
-│   ├── FuWuQiZhuangTai/      Server online status
-│   └── GongYong/             Shared dialogs and help text
+│   ├── Config/               Unified configuration, server info, character cache
+│   ├── FolderLocator/        Locating and validating game settings folders
+│   ├── ServerStatus/         Server online status
+│   └── Shared/               Shared dialogs, help text, recycle-bin deletion
 ├── Features/                 Business features
-│   ├── PeiZhiTongBu/         Config sync (file sync, field mapping, marshal parsing)
-│   ├── BeiFen/               Backups
-│   ├── PeiZhiFangAn/         Configuration schemes
-│   ├── JianChuanBiaoQian/    Ship tags
-│   ├── RiZhi/                Logging
-│   └── GengXin/              Auto update
+│   ├── ConfigSync/           Config sync (file sync, field mapping, marshal parsing)
+│   ├── Backup/               Backups
+│   ├── ConfigScheme/         Configuration schemes
+│   ├── ShipTags/             Ship tags
+│   ├── Logging/              Logging
+│   └── Update/               Auto update
 ├── OtherTools/               Other tools
-│   ├── MoBanDaoRu/           Shared template-import framework (PI / fitting / overview)
-│   ├── ZhongCaiMoBan/        Planetary interaction template import
-│   ├── ZhuangPeiFangAn/      Fitting import
-│   ├── ZongLanMoBan/         Overview template import
-│   ├── PeiZhiFangAnDaoRu/    Config scheme import
-│   ├── LiaoTianJiLu/         Chat log viewer
-│   ├── XingXiJuLi/           System distance lookup
-│   └── EveKeHuDuanGuard.cs   EVE client running check
+│   ├── TemplateImport/       Shared template-import framework (PI / fitting / overview)
+│   ├── PlantingTemplate/     Planetary interaction template import
+│   ├── FittingPlan/          Fitting import
+│   ├── OverviewTemplate/     Overview template import
+│   ├── ConfigSchemeImport/   Config scheme import
+│   ├── ChatLog/              Chat log viewer
+│   ├── SystemDistance/       System distance lookup (Data/ holds embedded system data)
+│   └── EveClientGuard.cs     EVE client running check
 ├── tests/EVEBox.Tests/       Unit tests (xUnit)
 ├── EVEBox.sln
 └── EVEBox.csproj
@@ -132,12 +132,14 @@ EVEBox/
 
 ### Naming convention
 
-The naming rules are unusual, so read this before changing code:
-
-- **Type names, namespaces and file names use Chinese pinyin** (optionally with an English suffix), e.g. `ZhuChuangTi` (main form), `PeiZhiManager` (config manager), `WenJianTongBuManager` (file sync manager);
-- **Member variables, local variables and the semantics of public APIs stay in English**;
+- **All identifiers are in English**: type names, member names, variables, namespaces,
+  file names and directory names. A file name matches the type it holds
+  (e.g. `MainForm.cs` holds `MainForm`);
+- **Comments, log strings, UI text and commit messages are in Chinese**;
 - A feature module keeps its **business code and its UI code in the same directory**;
-- "Template" is always spelled `MoBan`, never `MuBan`.
+- Pure decision logic lives in standalone `*Core` classes (e.g. `BackupCore`, `SyncCore`)
+  that do not depend on WinForms, so it can be unit-tested;
+- "Template" is spelled `Template` throughout (the code historically used `MoBan`).
 
 ## Changelog
 

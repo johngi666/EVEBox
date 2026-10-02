@@ -76,7 +76,7 @@ EVE BOX 是给 EVE Online 玩家用的桌面工具，C# / WinForms 写成，单�
 | 游戏配置 | `%LOCALAPPDATA%\CCP\EVE\...\settings_Default`（自动查找，也可手动指定） |
 | 聊天记录 | `文档\EVE\logs\Chatlogs`（需在游戏内开启聊天记录保存） |
 | 聊天记录导出 | 桌面，文件名 `角色名_起止日期.txt`；同名不覆盖，自动加 `(2)`、`(3)` |
-| 内置模板 | 源码在 `OtherTools\<模块>\MoBan\`，编译时打包进 exe，首次运行释放到 `Documents\EVE\templates\<模块>\`；程序目录里的旧 `templates` 会自动送回收站 |
+| 内置模板 | 源码在 `OtherTools\<模块>\MoBan\`（模块如 `PlantingTemplate` / `FittingPlan` / `OverviewTemplate` / `ConfigSchemeImport`），编译时打包进 exe，首次运行释放到 `Documents\EVE\templates\<模块>\`；程序目录里的旧 `templates` 会自动送回收站 |
 
 ## 开发者指南
 
@@ -104,26 +104,26 @@ dotnet publish -c Release
 EVEBox/
 ├── App/                      程序壳与界面框架（主窗体、标题栏、左右侧面板、主题）
 ├── Common/                   通用支撑
-│   ├── PeiZhi/               统一配置管理、服务器信息、角色缓存
-│   ├── WenJianJia/           游戏配置文件夹查找与校验
-│   ├── FuWuQiZhuangTai/      服务器在线状态
-│   └── GongYong/             通用弹窗、帮助文本
+│   ├── Config/               统一配置管理、服务器信息、角色缓存
+│   ├── FolderLocator/        游戏配置文件夹查找与校验
+│   ├── ServerStatus/         服务器在线状态
+│   └── Shared/               通用弹窗、帮助文本、回收站删除等公共件
 ├── Features/                 业务功能
-│   ├── PeiZhiTongBu/         配置同步（文件同步、字段映射、marshal 解析）
-│   ├── BeiFen/               备份
-│   ├── PeiZhiFangAn/         配置方案
-│   ├── JianChuanBiaoQian/    舰船标签
-│   ├── RiZhi/                日志
-│   └── GengXin/              更新
+│   ├── ConfigSync/           配置同步（文件同步、字段映射、marshal 解析）
+│   ├── Backup/               备份
+│   ├── ConfigScheme/         配置方案
+│   ├── ShipTags/             舰船标签
+│   ├── Logging/              日志
+│   └── Update/               更新
 ├── OtherTools/               其他工具
-│   ├── MoBanDaoRu/           模板导入公共框架（种菜 / 装配 / 总览共用）
-│   ├── ZhongCaiMoBan/        种菜模板导入
-│   ├── ZhuangPeiFangAn/      装配方案导入
-│   ├── ZongLanMoBan/         总览模板导入
-│   ├── PeiZhiFangAnDaoRu/    配置方案导入
-│   ├── LiaoTianJiLu/         查看聊天记录
-│   ├── XingXiJuLi/           星系间距查询
-│   └── EveKeHuDuanGuard.cs   EVE 客户端运行检测
+│   ├── TemplateImport/       模板导入公共框架（种菜 / 装配 / 总览共用）
+│   ├── PlantingTemplate/     种菜模板导入
+│   ├── FittingPlan/          装配方案导入
+│   ├── OverviewTemplate/     总览模板导入
+│   ├── ConfigSchemeImport/   配置方案导入
+│   ├── ChatLog/              查看聊天记录
+│   ├── SystemDistance/       星系间距查询（Data/ 为内置星系数据）
+│   └── EveClientGuard.cs     EVE 客户端运行检测
 ├── tests/EVEBox.Tests/       单元测试（xUnit）
 ├── EVEBox.sln
 └── EVEBox.csproj
@@ -131,12 +131,13 @@ EVEBox/
 
 ### 命名约定
 
-这个项目的命名规则比较特别，改代码前先了解：
-
-- **类型名、命名空间、文件名用中文拼音**（可带英文后缀），例如 `ZhuChuangTi`（主窗体）、`PeiZhiManager`（配置管理）、`WenJianTongBuManager`（文件同步）；
-- **成员变量、局部变量保留英文**；
+- **标识符一律用英文**：类型名、成员名、变量名、命名空间、文件名与目录名；
+  文件名与类型名保持一致（如 `MainForm.cs` 对应 `MainForm`）；
+- **注释、日志、界面文案、提交信息用中文**；
 - 每个功能模块的**业务代码和它的界面代码放在同一个目录**下；
-- 拼音统一用 `MoBan` 表示「模板」，不要写成 `MuBan`。
+- 纯业务的判断逻辑抽到独立的 `*Core` 类里（如 `BackupCore`、`SyncCore`），
+  不依赖 WinForms，便于写单元测试；
+- 「模板」对应的目录与代码统一用 `Template`（历史上曾写作 `MoBan`，现已统一）。
 
 ## 更新日志
 
