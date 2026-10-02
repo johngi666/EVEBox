@@ -92,18 +92,103 @@ namespace EVEBox.OtherTools.TemplateImport
         }
 
         /// <summary>
-        /// 找出旧目录里不属于内置模板的文件（路径对不上或内容大小不一致）；全是内置模板则返回 null
+        /// 内置模块目录的旧中文名 → 新英文名。
+        ///
+        /// 模板模块目录在英文化后改了名（如 ZhongCaiMoBan → PlantingTemplate）。
+        /// 老用户的 文档\EVE\templates 下会留着旧目录，与新目录并排出现重复模板，
+        /// 所以启动时把旧目录清掉——但只清「内容全是内置原件」的，
+        /// 用户自己往里加的文件会保留整个目录（与程序目录旧 templates 的处理一致）。
         /// </summary>
-        public static string ZhaoChuFeiNeiZhiWenJian(string jiuMuLu)
+        private static readonly Dictionary<string, string> JiuMoKuaiMing = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["PeiZhiFangAnDaoRu"] = "ConfigSchemeImport",
+            ["ZhongCaiMoBan"] = "PlantingTemplate",
+            ["ZhuangPeiFangAn"] = "FittingPlan",
+            ["ZongLanMoBan"] = "OverviewTemplate",
+        };
+
+        /// <summary>
+        /// 清理 文档\EVE\templates 下遗留的旧中文模块目录（英文化前释放的）。
+        /// 只清理内容全是内置原件、没有用户自加文件的目录；一律送回收站。
+        /// 返回清理掉的目录数。
+        /// </summary>
+        public static int QingLiJiuMoKuaiMuLu(Action<string, string, string> log = null)
+            => QingLiJiuMoKuaiMuLu(MoBanGenMuLu, log);
+
+        /// <summary>
+        /// 清理指定根目录下遗留的旧中文模块目录（测试用；生产走 MoBanGenMuLu 那个重载）。
+        /// </summary>
+        public static int QingLiJiuMoKuaiMuLu(string genMuLu, Action<string, string, string> log = null)
+        {
+            int qingLiShu = 0;
+
+            foreach (var pai in JiuMoKuaiMing)
+            {
+                string jiuMuLu = Path.Combine(genMuLu, pai.Key);
+                string xinMuLu = Path.Combine(genMuLu, pai.Value);
+
+                try
+                {
+                    if (!Directory.Exists(jiuMuLu)) continue;
+
+                    // 防一手：新旧同名时绝不动
+                    if (string.Equals(Path.GetFullPath(jiuMuLu), Path.GetFullPath(xinMuLu),
+                            StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    string yuWai = ZhaoChuFeiNeiZhiWenJian(jiuMuLu, pai.Value);
+                    if (yuWai != null)
+                    {
+                        log?.Invoke("内置模板", "旧模板目录保留（里面有非内置文件）", yuWai);
+                        continue;
+                    }
+
+                    Microsoft.VisualBasic.FileIO.FileSystem.DeleteDirectory(
+                        jiuMuLu,
+                        Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
+                        Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
+
+                    qingLiShu++;
+                    log?.Invoke("内置模板", "已把改名前的旧模板目录送进回收站", jiuMuLu);
+                }
+                catch (Exception ex)
+                {
+                    log?.Invoke("内置模板", "清理旧模板目录失败", $"{jiuMuLu}: {ex.Message}");
+                }
+            }
+
+            return qingLiShu;
+        }
+
+        /// <summary>
+        /// 找出旧目录里不属于内置模板的文件（按「模块内的相对路径」比对，与模块名叫什么无关）；
+        /// 全是内置模板则返回 null。
+        /// </summary>
+        /// <param name="jiuMuLu">要检查的目录（可能是旧中文模块目录）</param>
+        /// <param name="moKuaiMing">该目录对应的模块名（用于取内置文件清单）</param>
+        public static string ZhaoChuFeiNeiZhiWenJian(string jiuMuLu, string moKuaiMing = null)
         {
             var huiBian = Assembly.GetExecutingAssembly();
             var neiZhi = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
 
+            string qianZhui = string.IsNullOrEmpty(moKuaiMing) ? null : moKuaiMing + "/";
+
             foreach (var pai in LieChuZiYuan())
             {
                 using var ziYuanLiu = huiBian.GetManifestResourceStream(pai.Key);
-                if (ziYuanLiu != null)
-                    neiZhi[pai.Value] = ziYuanLiu.Length;   // pai.Value 用 / 分隔
+                if (ziYuanLiu == null) continue;
+
+                // 指定模块时，只取该模块的资源，并剥掉模块名，
+                // 这样无论是旧中文目录还是新英文目录都能按同样的相对路径比对
+                if (qianZhui != null)
+                {
+                    if (!pai.Value.StartsWith(qianZhui, StringComparison.OrdinalIgnoreCase)) continue;
+                    neiZhi[pai.Value.Substring(qianZhui.Length)] = ziYuanLiu.Length;
+                }
+                else
+                {
+                    neiZhi[pai.Value] = ziYuanLiu.Length;
+                }
             }
 
             foreach (string wenJian in Directory.GetFiles(jiuMuLu, "*", SearchOption.AllDirectories))

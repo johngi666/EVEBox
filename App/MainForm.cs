@@ -130,6 +130,10 @@ namespace EVEBox.App
             // 旧版本残留在程序目录的 templates 换位置后就没用了，顺手送回收站
             BuiltInTemplateResource.QingLiJiuMuLu(_logService.Log);
 
+            // 模板模块目录英文化后改了名，老用户的 文档\EVE\templates 下会留着旧中文目录、
+            // 与新目录并排出现重复模板；只清理「全是内置原件」的，含自加文件的保留
+            BuiltInTemplateResource.QingLiJiuMoKuaiMuLu(_logService.Log);
+
             _xingXiJuLiView = new SystemDistanceView(_httpClient, _configManager);
 
             _liaoTianJiLuView = new ChatLogView(_logService.Log);
