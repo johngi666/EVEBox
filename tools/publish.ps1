@@ -3,10 +3,10 @@
     一步完成 EVEBox 发版：同步版本信息 → 跑测试 → 打包 → 校验产物。
 
 .DESCRIPTION
-    版本号的唯一来源是 App\YingYongXinXi.cs 里的 Version 常量（已有测试守护它与 version.json 一致）。
+    版本号的唯一来源是 App\AppInfo.cs 里的 Version 常量（已有测试守护它与 version.json 一致）。
     本脚本以它为准，把其余会漂移的地方一次性同步到位：
 
-      1. App\YingYongXinXi.cs    读取版本、日期、更新说明（唯一来源，脚本只读不写）
+      1. App\AppInfo.cs    读取版本、日期、更新说明（唯一来源，脚本只读不写）
       2. version.json            写入 version / downloadUrl / notes
       3. README.md               在「## 更新日志」下插入新一节（若尚无该版本）
       4. README.en.md            在「## Changelog」下插入新一节（若尚无该版本）
@@ -40,7 +40,7 @@ $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$infoFile = Join-Path $repoRoot 'App\YingYongXinXi.cs'
+$infoFile = Join-Path $repoRoot 'App\AppInfo.cs'
 $versionJsonPath = Join-Path $repoRoot 'version.json'
 $readmeZhPath = Join-Path $repoRoot 'README.md'
 $readmeEnPath = Join-Path $repoRoot 'README.en.md'
@@ -52,13 +52,13 @@ function Write-Problem($text) { Write-Host $text -ForegroundColor Red }
 # ------------------------------------------------------------
 # 1. 读取唯一来源
 # ------------------------------------------------------------
-Write-Step '读取版本信息（来源：App\YingYongXinXi.cs）'
+Write-Step '读取版本信息（来源：App\AppInfo.cs）'
 
 if (-not (Test-Path $infoFile)) { Write-Problem "找不到 $infoFile"; exit 1 }
 $infoText = [System.IO.File]::ReadAllText($infoFile, [System.Text.Encoding]::UTF8)
 
 $versionMatch = [regex]::Match($infoText, 'public\s+const\s+string\s+Version\s*=\s*"([^"]+)"')
-if (-not $versionMatch.Success) { Write-Problem '没能从 YingYongXinXi.cs 解析出 Version 常量'; exit 1 }
+if (-not $versionMatch.Success) { Write-Problem '没能从 AppInfo.cs 解析出 Version 常量'; exit 1 }
 $version = $versionMatch.Groups[1].Value
 
 $dateMatch = [regex]::Match($infoText, 'public\s+const\s+string\s+ReleaseDate\s*=\s*"([^"]+)"')
@@ -74,7 +74,7 @@ if ($version -notmatch '^v\d+\.\d+') {
 
 # 更新说明：ReleaseNotes 由多段字符串拼接而成，逐段取出引号内容再合并
 $notesMatch = [regex]::Match($infoText, 'ReleaseNotes\s*=\s*((?:\s*"[^"]*"\s*\+?)+);')
-if (-not $notesMatch.Success) { Write-Problem '没能从 YingYongXinXi.cs 解析出 ReleaseNotes'; exit 1 }
+if (-not $notesMatch.Success) { Write-Problem '没能从 AppInfo.cs 解析出 ReleaseNotes'; exit 1 }
 $noteParts = [regex]::Matches($notesMatch.Groups[1].Value, '"((?:[^"\\]|\\.)*)"')
 $notes = ($noteParts | ForEach-Object { $_.Groups[1].Value }) -join ''
 $notes = $notes -replace '\\n', "`n"

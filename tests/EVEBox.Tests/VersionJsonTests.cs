@@ -27,7 +27,7 @@ public class VersionJsonTests
         var gen = doc.RootElement;
 
         string banBen = gen.GetProperty("version").GetString()!;
-        Assert.Equal(YingYongXinXi.Version, banBen);
+        Assert.Equal(AppInfo.Version, banBen);
 
         string xiaZai = gen.GetProperty("downloadUrl").GetString()!;
         Assert.Contains(banBen, xiaZai);

@@ -126,19 +126,20 @@ generated_code = true
 
 # ============================================================
 # CA2000 误报豁免：以下位置的对象所有权已经转移，不是泄漏
+# （路径随文件英文化同步更新）
 # ============================================================
-# 1) new ZhuChuangTi() 交给 Application.Run：窗体由消息循环负责释放
-[App/ChengXu.cs]
+# 1) new MainForm() 交给 Application.Run：窗体由消息循环负责释放
+[App/Program.cs]
 dotnet_diagnostic.CA2000.severity = none
 
 # 2) 延迟隐藏列表的 Timer：在自己的 Tick 里 Stop + Dispose
-[OtherTools/XingXiJuLi/XingXiJuLiView.cs]
+[OtherTools/SystemDistance/SystemDistanceView.cs]
 dotnet_diagnostic.CA2000.severity = none
 
-[Common/FuWuQiZhuangTai/FuWuQiZhuangTaiManager.cs]
+[Common/ServerStatus/ServerStatusManager.cs]
 dotnet_diagnostic.CA2000.severity = none
 
 # 3) 往 MemoryStream 写数据：纯内存操作、不产生 I/O 阻塞，
 #    改成 WriteAsync 只会多一层状态机开销，这里保持同步写法
-[OtherTools/XingXiJuLi/C3qXingXiShuJuYuan.cs]
+[OtherTools/SystemDistance/C3qSystemDataSource.cs]
 dotnet_diagnostic.CA1849.severity = none

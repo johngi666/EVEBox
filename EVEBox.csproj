@@ -36,28 +36,28 @@
 		LogicalName 前缀 EVEBoxTemplates/ 供运行时识别。
 	-->
 	<ItemGroup>
-		<EmbeddedResource Include="OtherTools\PeiZhiFangAnDaoRu\MoBan\**\*">
-			<LogicalName>EVEBoxTemplates/PeiZhiFangAnDaoRu/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+		<EmbeddedResource Include="OtherTools\ConfigSchemeImport\MoBan\**\*">
+			<LogicalName>EVEBoxTemplates/ConfigSchemeImport/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
 		</EmbeddedResource>
-		<EmbeddedResource Include="OtherTools\ZhongCaiMoBan\MoBan\**\*">
-			<LogicalName>EVEBoxTemplates/ZhongCaiMoBan/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+		<EmbeddedResource Include="OtherTools\PlantingTemplate\MoBan\**\*">
+			<LogicalName>EVEBoxTemplates/PlantingTemplate/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
 		</EmbeddedResource>
-		<EmbeddedResource Include="OtherTools\ZhuangPeiFangAn\MoBan\**\*">
-			<LogicalName>EVEBoxTemplates/ZhuangPeiFangAn/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+		<EmbeddedResource Include="OtherTools\FittingPlan\MoBan\**\*">
+			<LogicalName>EVEBoxTemplates/FittingPlan/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
 		</EmbeddedResource>
-		<EmbeddedResource Include="OtherTools\ZongLanMoBan\MoBan\**\*">
-			<LogicalName>EVEBoxTemplates/ZongLanMoBan/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+		<EmbeddedResource Include="OtherTools\OverviewTemplate\MoBan\**\*">
+			<LogicalName>EVEBoxTemplates/OverviewTemplate/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
 		</EmbeddedResource>
 	</ItemGroup>
 
 	<!--
 		星系间距查询的三服星系数据（来源 c3q.cc，数据不常变动）：同样直接编译进 exe（EmbeddedResource），
 		运行时优先读内置数据，无需联网下载、不生成文件；仅内置资源缺失时才回退网络。
-		LogicalName 前缀 EVEBoxXingXiJuLi/ 供运行时识别。
+		LogicalName 前缀 EVEBoxSystemDistance/ 供运行时识别。
 	-->
 	<ItemGroup>
-		<EmbeddedResource Include="OtherTools\XingXiJuLi\ShuJu\**\*.txt">
-			<LogicalName>EVEBoxXingXiJuLi/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+		<EmbeddedResource Include="OtherTools\SystemDistance\Data\**\*.txt">
+			<LogicalName>EVEBoxSystemDistance/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
 		</EmbeddedResource>
 	</ItemGroup>
 </Project>
