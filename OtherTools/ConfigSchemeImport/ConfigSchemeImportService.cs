@@ -33,7 +33,7 @@ namespace EVEBox.OtherTools.ConfigSchemeImport
         private const string CharZhengZe = @"^core_char_\d+\.dat$";
         private const string UserZhengZe = @"^core_user_\d+\.dat$";
 
-        /// <summary>内置方案包目录（运行时释放到 文档\EVE\templates\PeiZhiFangAnDaoRu）</summary>
+        /// <summary>内置方案包目录（运行时释放到 文档\EVE\templates\ConfigSchemeImport）</summary>
         public string NeiZhiFangAnMuLu { get; }
 
         public ConfigSchemeImportService(string neiZhiFangAnMuLu)

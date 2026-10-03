@@ -1,4 +1,4 @@
-﻿using EVEBox.Common.Shared;
+using EVEBox.Common.Shared;
 using EVEBox.Common.Config;
 using EVEBox.Common.FolderLocator;
 using EVEBox.OtherTools.TemplateImport;
@@ -52,12 +52,17 @@ namespace EVEBox.OtherTools.ConfigSchemeImport
         private string _dangQianMuBiao;
         private bool _zhengZaiChaZhao;
 
+        /// <summary>模块名：内置模板目录、内嵌资源前缀都用它，改名时两处必须一致</summary>
+        public const string MoKuaiMing = "ConfigSchemeImport";
+
+        /// <summary>本模块内置模板所在的目录（供测试核对与资源前缀是否一致）</summary>
+        public static string NeiZhiMoBanMuLu => BuiltInTemplateResource.MoBanMuLu(MoKuaiMing);
+
         public ConfigSchemeImportView(ConfigManager peiZhi, Action<string, string, string> riZhi)
         {
             _peiZhi = peiZhi;
             _riZhi = riZhi;
-            _fuWu = new ConfigSchemeImportService(
-                BuiltInTemplateResource.MoBanMuLu("PeiZhiFangAnDaoRu"));
+            _fuWu = new ConfigSchemeImportService(NeiZhiMoBanMuLu);
             _wenJianJiaChaZhao = new ConfigFolderFinder(ServerInfo.ToKeywordMap(), riZhi, null);
 
             _cmbFuWuQi = new ComboBox();

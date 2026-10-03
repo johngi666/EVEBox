@@ -75,12 +75,12 @@ namespace EVEBox.App
 
         /// <summary>当前选中的「其他工具」二级项（构建界面时会先设默认项，仅记状态不加载）</summary>
         private int _toolIndex;
-        private readonly ChatLogView _liaoTianJiLuView;         // 查看聊天记录
-        private readonly ConfigSchemeImportView _peiZhiFangAnDaoRuView;  // 配置方案导入
-        private readonly SystemDistanceView _xingXiJuLiView;
-        private readonly PlantingTemplateView _zhongCaiMoBanView;        // 种菜模板导入
-        private readonly FittingPlanView _zhuangPeiFangAnView;    // 装配方案导入
-        private readonly OverviewTemplateView _zongLanMoBanView;          // 总览模板导入
+        private readonly ChatLogView _chatLogView;                    // 查看聊天记录
+        private readonly ConfigSchemeImportView _configImportView;    // 配置方案导入
+        private readonly SystemDistanceView _systemDistanceView;      // 星系间距查询
+        private readonly PlantingTemplateView _plantingTemplateView;  // 种菜模板导入
+        private readonly FittingPlanView _fittingPlanView;            // 装配方案导入
+        private readonly OverviewTemplateView _overviewTemplateView;  // 总览模板导入
 
         // 配置同步标签控件
         private readonly ComboBox _cmbServer = new ComboBox();
@@ -143,13 +143,13 @@ namespace EVEBox.App
             // 与新目录并排出现重复模板；只清理「全是内置原件」的，含自加文件的保留
             BuiltInTemplateResource.QingLiJiuMoKuaiMuLu(_logService.Log);
 
-            _xingXiJuLiView = new SystemDistanceView(_httpClient, _configManager);
+            _systemDistanceView = new SystemDistanceView(_httpClient, _configManager);
 
-            _liaoTianJiLuView = new ChatLogView(_logService.Log);
-            _peiZhiFangAnDaoRuView = new ConfigSchemeImportView(_configManager, _logService.Log);
-            _zhongCaiMoBanView = new PlantingTemplateView();
-            _zhuangPeiFangAnView = new FittingPlanView();
-            _zongLanMoBanView = new OverviewTemplateView();
+            _chatLogView = new ChatLogView(_logService.Log);
+            _configImportView = new ConfigSchemeImportView(_configManager, _logService.Log);
+            _plantingTemplateView = new PlantingTemplateView();
+            _fittingPlanView = new FittingPlanView();
+            _overviewTemplateView = new OverviewTemplateView();
 
             ConfigFolderFinder folderFinder = new ConfigFolderFinder(ServerInfo.ToKeywordMap(), _logService.Log, null);
 
@@ -517,17 +517,17 @@ namespace EVEBox.App
                 toolPanels[i].BackColor = Color.White;
                 toolPanels[i].Visible = false;
                 if (toolPanels[i] == _panelJumpDistance)
-                    toolPanels[i].Controls.Add(_xingXiJuLiView);
+                    toolPanels[i].Controls.Add(_systemDistanceView);
                 else if (toolPanels[i] == _panelLogViewer)
-                    toolPanels[i].Controls.Add(_liaoTianJiLuView);
+                    toolPanels[i].Controls.Add(_chatLogView);
                 else if (toolPanels[i] == _panelConfigImport)
-                    toolPanels[i].Controls.Add(_peiZhiFangAnDaoRuView);
+                    toolPanels[i].Controls.Add(_configImportView);
                 else if (toolPanels[i] == _panelPiImport)
-                    toolPanels[i].Controls.Add(_zhongCaiMoBanView);
+                    toolPanels[i].Controls.Add(_plantingTemplateView);
                 else if (toolPanels[i] == _panelFittingImport)
-                    toolPanels[i].Controls.Add(_zhuangPeiFangAnView);
+                    toolPanels[i].Controls.Add(_fittingPlanView);
                 else if (toolPanels[i] == _panelOverviewImport)
-                    toolPanels[i].Controls.Add(_zongLanMoBanView);
+                    toolPanels[i].Controls.Add(_overviewTemplateView);
                 else
                     toolPanels[i].Controls.Add(CreatePlaceholderLabel(
                         $"{toolNames[i]}开发中…\n\n有bug或者建议请游戏内邮件联系：曙光服-醉晚月\n\n欢迎投喂QAQ"));
@@ -650,9 +650,9 @@ namespace EVEBox.App
             if (!_panelTools.Visible || !_toolPanels[index].Visible) return;
 
             if (_toolPanels[index] == _panelJumpDistance)
-                _ = _xingXiJuLiView.EnsureLoadedAsync();
+                _ = _systemDistanceView.EnsureLoadedAsync();
             else if (_toolPanels[index] == _panelLogViewer)
-                _ = _liaoTianJiLuView.EnsureLoadedAsync();
+                _ = _chatLogView.EnsureLoadedAsync();
         }
 
         /// <summary>
