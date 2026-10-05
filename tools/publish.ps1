@@ -12,7 +12,8 @@
       4. README.en.md            在「## Changelog」下插入新一节（若尚无该版本）
       5. dotnet publish          单文件自包含输出到 publish\
       6. Compress-Archive        生成 publish\EVEBOX_v{版本}.zip
-      7. 校验                    zip 存在、非空，并打印大小与 SHA256
+      7. 复制到本机测试目录      F:\EVEtools\EVE BOX.exe（可用 -SkipLocalCopy 跳过）
+      8. 校验                    zip 存在、非空，并打印大小与 SHA256
 
     只做本地操作，不碰任何远程仓库；push 与建 Release 由人工确认后另行执行。
 
@@ -21,6 +22,9 @@
 
 .PARAMETER SkipPublish
     只同步版本信息、不打包（用于先看一眼改动）。
+
+.PARAMETER SkipLocalCopy
+    不往 F:\EVEtools 复制 exe（该目录用于本机实机验证）。
 
 .EXAMPLE
     .\publish.ps1                 # 完整发版流程
@@ -33,8 +37,15 @@
 [CmdletBinding()]
 param(
     [switch]$SkipTests,
-    [switch]$SkipPublish
+    [switch]$SkipPublish,
+    [switch]$SkipLocalCopy
 )
+
+# 本机实机验证目录：打包后把 exe 覆盖到这里，双击即可运行。
+# 注意：不能直接在仓库目录里运行 exe——仓库位于 DSH 工作区内，会施加进程级限制，
+# 单文件 exe 启动时要解包自身，在工作区内会被挡住；复制到工作区外则一切正常。
+# 这是环境限制、与程序无关，最终用户从下载目录运行不受影响。
+$localTestDir = 'F:\EVEtools'
 
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
@@ -182,6 +193,39 @@ if ($LASTEXITCODE -ne 0) { Write-Problem '发布失败'; exit 1 }
 $exePath = Join-Path $publishDir 'EVE BOX.exe'
 if (-not (Test-Path $exePath)) { Write-Problem "没有产出 $exePath"; exit 1 }
 
+# 5.5 复制到本机实机验证目录（先做：这是本机验证的主路径）
+# ------------------------------------------------------------
+if ($SkipLocalCopy) {
+    Write-Host '已跳过复制到本机测试目录（-SkipLocalCopy）' -ForegroundColor Yellow
+}
+else {
+    $localTestDrive = Split-Path -Qualifier $localTestDir
+    if (-not (Test-Path $localTestDrive)) {
+        # 盘符不存在（换机器/未插盘）时跳过，不影响发版
+        Write-Host "  跳过：$localTestDir 所在磁盘不存在" -ForegroundColor Yellow
+    }
+    else {
+        Write-Step "复制到本机测试目录 $localTestDir"
+        if (-not (Test-Path $localTestDir)) {
+            New-Item -ItemType Directory -Path $localTestDir -Force | Out-Null
+        }
+
+        $localTestExe = Join-Path $localTestDir 'EVE BOX.exe'
+        Copy-Item -Path $exePath -Destination $localTestExe -Force
+
+        $yuanDaXiao = (Get-Item $exePath).Length
+        $fuZhiDaXiao = (Get-Item $localTestExe).Length
+        if ($yuanDaXiao -ne $fuZhiDaXiao) {
+            Write-Problem "复制后大小不符（源 $yuanDaXiao / 目标 $fuZhiDaXiao）"
+            exit 1
+        }
+        Write-Host ("  已覆盖 {0}（{1:N1} MB）" -f $localTestExe, ($fuZhiDaXiao / 1MB))
+    }
+}
+
+# ------------------------------------------------------------
+# 5.6 生成发布压缩包
+# ------------------------------------------------------------
 $zipPath = Join-Path $publishDir "EVEBOX_$version.zip"
 if (Test-Path $zipPath) {
     # 旧包送回收站，不做永久删除（项目规则第 1 条）
@@ -190,7 +234,22 @@ if (Test-Path $zipPath) {
     Write-Host '  已把同名旧压缩包送进回收站'
 }
 
-Compress-Archive -Path $exePath -DestinationPath $zipPath -CompressionLevel Optimal
+# 刚发布的 exe 可能还有短时句柄未释放（杀软扫描、资源管理器预览等），
+# 压缩会报「文件被占用」。重试几次，失败才终止。
+$yaSuoOk = $false
+for ($i = 1; $i -le 3; $i++) {
+    try {
+        Compress-Archive -Path $exePath -DestinationPath $zipPath -CompressionLevel Optimal -ErrorAction Stop
+        $yaSuoOk = $true
+        break
+    }
+    catch {
+        Write-Host "  压缩第 $i 次失败：$($_.Exception.Message)" -ForegroundColor Yellow
+        Start-Sleep -Seconds 2
+        if (Test-Path $zipPath) { Remove-Item $zipPath -Force -ErrorAction SilentlyContinue }
+    }
+}
+if (-not $yaSuoOk) { Write-Problem '生成压缩包失败（exe 被占用？）'; exit 1 }
 
 # ------------------------------------------------------------
 # 6. 校验
