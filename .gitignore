@@ -25,4 +25,4 @@ publish_v546/
 # 凭据类文件绝不入库（凭据请放在仓库外）
 *credentials*.txt
 *token*.txt
-tools/publish.ps1
+tools/
