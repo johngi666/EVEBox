@@ -9,15 +9,16 @@ namespace EVEBox.App
         /// <summary>
         /// 当前版本号（发布时修改此处即可）
         /// </summary>
-        public const string Version = "v6.15";
+        public const string Version = "v6.16";
 
         /// <summary>
         /// 更新内容（每行用 \n 换行）
         /// </summary>
         public const string ReleaseNotes =
-            "   - 修复星系间距查询在曙光服/晨曦服加载失败的问题；三服星系数据已内置，打开即用、无需联网下载\n" +
-            "   - 星系数据获取逻辑强化（流式读取 + 自动重试），网络波动时更稳定\n" +
-            "   - 使用说明页小幅更新";
+            "   - 修复星系间距查询的拼音首字母检索：此前输入 jt、sbsj 等首字母匹配不到中文星系名，现已可正常检索\n" +
+            "   - 修复「装配方案导入」「配置方案导入」的内置模板加载不出来（模板列表空白）\n" +
+            "   - 启动流程优化：去掉重复执行的操作，操作日志不再记录每次开机的过程噪音\n" +
+            "   - 内置模板、星系数据在升级后会自动整理，不再残留旧目录";
 
         /// <summary>
         /// 主程序标准文件名（与 csproj 的 AssemblyName 保持一致）
@@ -27,7 +28,7 @@ namespace EVEBox.App
         /// <summary>
         /// 更新日期
         /// </summary>
-        public const string ReleaseDate = "2026年9月28日";
+        public const string ReleaseDate = "2026年10月7日";
 
         /// <summary>
         /// 项目主页（Gitee）

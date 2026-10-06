@@ -143,6 +143,10 @@ EVEBox/
 
 ## Changelog
 
+### v6.16 (October 7, 2026)
+
+See README.md changelog for v6.16 (Chinese only).
+
 ### v6.15 (September 28, 2026)
 - Fixed the System Distance tool failing to load system data on the Infinity / Serenity servers; system data for all three servers is now packed into the executable, so it works offline with no download needed
 - Improved system data fetching (streaming reads + automatic retries) for better resilience on unstable connections
