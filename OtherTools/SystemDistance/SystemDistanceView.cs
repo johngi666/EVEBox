@@ -317,43 +317,9 @@ namespace EVEBox.OtherTools.SystemDistance
             }
         }
 
-        /// <summary>模糊搜索：返回按相关度降序的候选星系。</summary>
+        /// <summary>模糊搜索：委托给 SystemSearch（纯逻辑，有单测覆盖）</summary>
         private List<SolarSystem> Search(string input, int limit)
-        {
-            if (_current == null || _current.Systems == null || _current.Systems.Count == 0)
-                return new List<SolarSystem>();
-
-            string q = input.Trim().ToLowerInvariant();
-            if (q.Length == 0) return new List<SolarSystem>();
-
-            var scored = new List<(SolarSystem System, int Score)>();
-            foreach (var s in _current.Systems)
-            {
-                int sc = Score(s, q);
-                if (sc > 0) scored.Add((s, sc));
-            }
-            return scored
-                .OrderByDescending(x => x.Score)
-                .ThenBy(x => x.System.Name, StringComparer.OrdinalIgnoreCase)
-                .Select(x => x.System)
-                .Take(limit)
-                .ToList();
-        }
-
-        /// <summary>相关度评分：完全匹配 > 前缀匹配 > 拼音前缀 > 包含 > 拼音包含。</summary>
-        private int Score(SolarSystem s, string q)
-        {
-            string name = (s.Name ?? string.Empty).ToLowerInvariant();
-            string py = (s.PinyinInitial ?? string.Empty).ToLowerInvariant();
-
-            if (name == q) return 100;
-            if (name.StartsWith(q, StringComparison.Ordinal)) return 90;
-            if (py == q) return 85;
-            if (py.StartsWith(q, StringComparison.Ordinal)) return 80;
-            if (name.Contains(q, StringComparison.Ordinal)) return 60;
-            if (py.Contains(q, StringComparison.Ordinal)) return 50;
-            return 0;
-        }
+            => SystemSearch.Search(_current?.Systems, input, limit);
 
         private void QueryDistance()
         {
