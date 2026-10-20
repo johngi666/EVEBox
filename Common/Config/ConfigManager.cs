@@ -224,6 +224,20 @@ namespace EVEBox.Common.Config
         }
 
         /// <summary>
+        /// 读取隐私模式开关（持久化在 evesync_config.json 的 UsePrivacyMode）
+        /// </summary>
+        public bool GetPrivacyMode() => _config.UsePrivacyMode;
+
+        /// <summary>
+        /// 保存隐私模式开关
+        /// </summary>
+        public void SavePrivacyMode(bool enabled)
+        {
+            _config.UsePrivacyMode = enabled;
+            Save();
+        }
+
+        /// <summary>
         /// 获取用户备注显示名（带原ID后缀，用于同步对话框）
         /// </summary>
         public string GetUserDisplayNameWithId(string userId)
@@ -245,6 +259,12 @@ namespace EVEBox.Common.Config
         public string CachedPath { get; set; }
         public string BackupPath { get; set; }
         public bool UseDarkMode { get; set; } = false;
+
+        /// <summary>
+        /// 隐私模式：开启后隐藏配置同步界面、遮蔽用户/角色ID与备注、角色名。
+        /// 状态会记住，下次启动保持上次选择。
+        /// </summary>
+        public bool UsePrivacyMode { get; set; } = false;
         public Dictionary<string, string> CharacterNames { get; set; } = new Dictionary<string, string>();
         public List<Scheme> ConfigSchemes { get; set; } = new List<Scheme>();
 

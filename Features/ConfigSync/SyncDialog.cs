@@ -1,4 +1,4 @@
-﻿using EVEBox.Common.Shared;
+using EVEBox.Common.Shared;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -186,17 +186,21 @@ namespace EVEBox.Features.ConfigSync
 
             foreach (var target in _targets)
             {
-                // ===== 获取显示名称（备注优先） =====
+                // ===== 获取显示名称（备注优先；隐私模式下备注与ID都遮蔽） =====
                 string displayText;
                 if (!string.IsNullOrEmpty(target.UserId) && _userRemarks != null && _userRemarks.TryGetValue(target.UserId, out string remark) && !string.IsNullOrWhiteSpace(remark))
                 {
                     // 有备注：显示 "备注 (数字ID)"
-                    displayText = $"{remark} ({target.UserId})";
+                    displayText = PrivacyMode.Enabled
+                        ? $"{PrivacyMode.MaskText(remark)} ({PrivacyMode.MaskId(target.UserId)})"
+                        : $"{remark} ({target.UserId})";
                 }
                 else if (!string.IsNullOrEmpty(target.DisplayName))
                 {
                     // 无备注但有DisplayName
-                    displayText = target.DisplayName;
+                    displayText = PrivacyMode.Enabled
+                        ? PrivacyMode.MaskText(target.DisplayName)
+                        : target.DisplayName;
                 }
                 else
                 {

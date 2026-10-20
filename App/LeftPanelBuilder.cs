@@ -1,4 +1,4 @@
-﻿using EVEBox.App;
+using EVEBox.App;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -54,6 +54,9 @@ namespace EVEBox.App
 
         public Button BtnTheme => _btnTheme;
         public Button BtnShipTag => _btnShipTag;
+
+        /// <summary>当前选中的标签索引</summary>
+        public int SelectedTab => _selectedTab;
 
         public LeftPanelBuilder()
         {

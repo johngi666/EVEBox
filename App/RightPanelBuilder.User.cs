@@ -1,4 +1,5 @@
-﻿using EVEBox.Features.ConfigSync;
+using EVEBox.Common.Shared;
+using EVEBox.Features.ConfigSync;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -128,6 +129,9 @@ namespace EVEBox.App
         {
             if (e.RowIndex < 0 || e.ColumnIndex != 0) return;
 
+            // 隐私模式下单元格里显示的是遮蔽文本，编辑会把它写成备注，直接禁掉
+            if (PrivacyMode.Enabled) return;
+
             var grid = sender as DataGridView;
             if (grid == null) return;
 
@@ -138,6 +142,7 @@ namespace EVEBox.App
         private void OnUserCellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0 || e.ColumnIndex != 0) return;
+            if (PrivacyMode.Enabled) return;   // 隐私模式下不允许改备注，避免写入遮蔽文本
 
             var grid = sender as DataGridView;
             if (grid == null) return;
@@ -172,6 +177,14 @@ namespace EVEBox.App
 
             if (displayText != userId)
             {
+                // 隐私模式下不展示原 ID，也不弹提示
+                if (PrivacyMode.Enabled)
+                {
+                    _userToolTip.Hide(grid);
+                    _hoveredUserId = null;
+                    return;
+                }
+
                 Point mousePos = grid.PointToClient(Cursor.Position);
                 _userToolTip.Show($"原ID: {userId}", grid, mousePos.X + 15, mousePos.Y - 20, 3000);
                 _hoveredUserId = userId;
@@ -204,7 +217,9 @@ namespace EVEBox.App
                 UserFileItem item = row.Tag as UserFileItem;
                 if (item != null && item.UserId == userId)
                 {
-                    row.Cells[0].Value = string.IsNullOrWhiteSpace(remark) ? userId : remark;
+                    row.Cells[0].Value = PrivacyMode.Enabled
+                        ? (string.IsNullOrWhiteSpace(remark) ? PrivacyMode.MaskId(userId) : PrivacyMode.MaskText(remark))
+                        : (string.IsNullOrWhiteSpace(remark) ? userId : remark);
                     break;
                 }
             }
@@ -218,14 +233,13 @@ namespace EVEBox.App
                 if (item != null)
                 {
                     string userId = item.UserId;
-                    if (remarks != null && remarks.TryGetValue(userId, out string remark) && !string.IsNullOrWhiteSpace(remark))
-                    {
-                        row.Cells[0].Value = remark;
-                    }
-                    else
-                    {
-                        row.Cells[0].Value = userId;
-                    }
+                    string remark = null;
+                    if (remarks != null) remarks.TryGetValue(userId, out remark);
+                    bool you = !string.IsNullOrWhiteSpace(remark);
+                    string wenBen = you ? remark : userId;
+                    row.Cells[0].Value = PrivacyMode.Enabled
+                        ? (you ? PrivacyMode.MaskText(wenBen) : PrivacyMode.MaskId(wenBen))
+                        : wenBen;
                 }
             }
         }

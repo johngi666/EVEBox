@@ -1,4 +1,4 @@
-namespace EVEBox.Common.Shared
+﻿namespace EVEBox.Common.Shared
 {
     /// <summary>
     /// 使用说明文本（「使用说明」标签页显示的内容）
@@ -10,7 +10,7 @@ namespace EVEBox.Common.Shared
                                                                      EVE BOX 使用说明
                                                                         [开源|免费|安全|透明]
 ================================================================================
-                                                                        命运之手-醉晚月出品
+                                                                              醉晚月出品
 
 【使用步骤】
 第一步：准备工作                          第二步：执行覆盖
@@ -87,9 +87,10 @@ namespace EVEBox.Common.Shared
    * 代表数字 ID，不同 ID 对应不同账号 / 角色
 
 【技术支持】
-   项目主页：https://gitee.com/minisangel/EVEBox
+   Gitee主页：https://gitee.com/minisangel/EVEBox
    GitHub ：https://github.com/johngi666/EVEBox
-   如有问题或建议，请游戏内邮件联系开发者：曙光服-醉晚月
+   B站：https://space.bilibili.com/482305624
+  如有问题或建议，请游戏内邮件联系开发者：曙光服-醉晚月
 ================================================================================
                                                                 祝您在 EVE Online 中游戏愉快！
 ================================================================================";

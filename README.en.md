@@ -143,6 +143,10 @@ EVEBox/
 
 ## Changelog
 
+### v6.17 (October 7, 2026)
+
+See README.md changelog for v6.17 (Chinese only).
+
 ### v6.16 (October 7, 2026)
 
 See README.md changelog for v6.16 (Chinese only).

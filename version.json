@@ -1,6 +1,6 @@
 {
-    "version":  "v6.16",
-    "downloadUrl":  "https://gitee.com/minisangel/EVEBox/releases/download/v6.16/EVEBOX_v6.16.zip",
+    "version":  "v6.17",
+    "downloadUrl":  "https://gitee.com/minisangel/EVEBox/releases/download/v6.17/EVEBOX_v6.17.zip",
     "url":  "https://github.com/johngi666/EVEBox/releases/latest",
-    "notes":  "修复星系间距查询的拼音首字母检索：此前输入 jt、sbsj 等首字母匹配不到中文星系名，现已可正常检索；修复「装配方案导入」「配置方案导入」的内置模板加载不出来（模板列表空白）；启动流程优化：去掉重复执行的操作，操作日志不再记录每次开机的过程噪音；内置模板、星系数据在升级后会自动整理，不再残留旧目录"
+    "notes":  "新增隐私模式开关（标题栏右侧）：开启后用户/角色ID只显示前4位，用户备注与角色名全部遮蔽，适合截图录屏；功能不受限制，配置同步照常使用；隐私模式状态会记住，下次启动保持上次选择；只影响显示，不改动任何文件与配置数据；修复星系间距查询的拼音首字母检索：输入 jt、sbsj 等首字母匹配不到中文星系名的问题；修复「装配方案导入」「配置方案导入」的内置模板加载不出来（模板列表空白）；启动流程优化：去掉重复执行的操作，操作日志不再记录每次开机的过程噪音"
 }

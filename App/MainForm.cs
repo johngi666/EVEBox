@@ -219,6 +219,18 @@ namespace EVEBox.App
             ThemeManager.ThemeChanged += ApplyTheme;
             ApplyTheme(ThemeManager.IsDarkMode);
 
+            // 隐私模式：只恢复状态，界面应用放到构造函数末尾（那时控件才齐全）
+            PrivacyMode.SetEnabled(_configManager.GetPrivacyMode());
+            _titleBarBuilder.PrivacyToggled += () =>
+            {
+                PrivacyMode.Toggle();
+                _configManager.SavePrivacyMode(PrivacyMode.Enabled);
+                ApplyPrivacyMode();
+                _logService.Log("隐私模式", PrivacyMode.Enabled ? "开启" : "关闭", "");
+            };
+            PrivacyMode.EnabledChanged += _ => _titleBarBuilder.SetPrivacyState(PrivacyMode.Enabled);
+            _titleBarBuilder.SetPrivacyState(PrivacyMode.Enabled);
+
             _serverStatusManager.SetStatusLabels(
                 _leftPanel.LblInfinityStatus,
                 _leftPanel.LblSerenityStatus,
@@ -253,6 +265,9 @@ namespace EVEBox.App
             };
             _updateCheckTimer.Start();
             _ = _updateService.CheckForUpdatesAsync();
+
+            // 控件齐全后应用一次隐私模式（若上次是开启状态，启动即处于保护态）
+            ApplyPrivacyMode();
         }
 
         private void InitializeComponent()
@@ -604,6 +619,7 @@ namespace EVEBox.App
 
             _contentHost.Dock = DockStyle.Fill;
             _contentHost.BackColor = Color.White;
+
             _contentHost.Controls.AddRange(new Control[]
             {
                 _panelSync, _panelBackup, _panelScheme, _panelHelp, _panelLog, _panelUpdate, _panelTools
@@ -847,57 +863,12 @@ namespace EVEBox.App
                 (grid, items) =>
                 {
                     _userFileItems = items;
-                    _rightPanel.DgvUserFiles.Rows.Clear();
-
-                    // ★★★ 获取用户备注 ★★★
-                    var remarks = _configManager.GetUserRemarks();
-
-                    foreach (var item in items)
-                    {
-                        // 获取显示名（有备注显示备注，无备注显示ID）
-                        string displayName = _configManager.GetUserDisplayName(item.UserId);
-                        item.DisplayName = displayName;
-
-                        int rowIndex = _rightPanel.DgvUserFiles.Rows.Add(
-                            displayName,  // ← 显示备注或ID
-                            item.ModifyTime.ToString("MM-dd HH:mm"),
-                            "💾",
-                            "📂"
-                        );
-
-                        // ★★★ 存储数据项到行Tag（排序后仍能对应到正确文件）★★★
-                        if (rowIndex >= 0)
-                        {
-                            _rightPanel.DgvUserFiles.Rows[rowIndex].Tag = item;
-                        }
-                    }
-
-                    // ★★★ 默认按修改时间递减排序（覆盖上次手动排序状态）★★★
-                    _rightPanel.DgvUserFiles.Sort(_rightPanel.DgvUserFiles.Columns[1], ListSortDirection.Descending);
+                    RefreshUserGridRows();
                 },
                 (grid, items) =>
                 {
                     _charFileItems = items;
-                    _rightPanel.DgvCharFiles.Rows.Clear();
-                    foreach (var item in items)
-                    {
-                        int rowIndex = _rightPanel.DgvCharFiles.Rows.Add(
-                            item.CharacterName ?? item.CharacterId,
-                            item.CharacterId,
-                            item.ModifyTime.ToString("MM-dd HH:mm"),
-                            "💾",
-                            "📂"
-                        );
-
-                        // ★★★ 存储数据项到行Tag（排序后仍能对应到正确文件）★★★
-                        if (rowIndex >= 0)
-                        {
-                            _rightPanel.DgvCharFiles.Rows[rowIndex].Tag = item;
-                        }
-                    }
-
-                    // ★★★ 默认按修改时间递减排序（覆盖上次手动排序状态）★★★
-                    _rightPanel.DgvCharFiles.Sort(_rightPanel.DgvCharFiles.Columns[2], ListSortDirection.Descending);
+                    RefreshCharacterGridRows();
                 },
                 (userCount, charCount, backupCount) =>
                 {
@@ -906,6 +877,72 @@ namespace EVEBox.App
                     _rightPanel.LblBackupTitle.Text = $"备份管理 ({backupCount}个备份)";
                 }
             );
+        }
+
+        /// <summary>
+        /// 按当前隐私模式重绘用户列表。
+        /// 显示内容：有备注显示备注、无备注显示用户ID；隐私模式下两者都会被遮蔽。
+        /// </summary>
+        private void RefreshUserGridRows()
+        {
+            if (_userFileItems == null) return;
+
+            _rightPanel.DgvUserFiles.Rows.Clear();
+
+            foreach (var item in _userFileItems)
+            {
+                // 遮蔽放在渲染时做：DisplayName 存的是原始值，
+                // 这样切换隐私模式重画表格就能立刻生效
+                string xianShi = PrivacyMode.Enabled
+                    ? PrivacyMode.MaskUserLabel(item.BeiZhu, item.UserId)
+                    : item.DisplayName;
+
+                int rowIndex = _rightPanel.DgvUserFiles.Rows.Add(
+                    xianShi,
+                    item.ModifyTime.ToString("MM-dd HH:mm"),
+                    "💾",
+                    "📂"
+                );
+
+                if (rowIndex >= 0)
+                {
+                    _rightPanel.DgvUserFiles.Rows[rowIndex].Tag = item;
+                }
+            }
+
+            // ★★★ 默认按修改时间递减排序（覆盖上次手动排序状态）★★★
+            _rightPanel.DgvUserFiles.Sort(_rightPanel.DgvUserFiles.Columns[1], ListSortDirection.Descending);
+        }
+
+        /// <summary>
+        /// 按当前隐私模式重绘角色列表（角色名、角色ID 在隐私模式下都会遮蔽）。
+        /// </summary>
+        private void RefreshCharacterGridRows()
+        {
+            if (_charFileItems == null) return;
+
+            _rightPanel.DgvCharFiles.Rows.Clear();
+
+            foreach (var item in _charFileItems)
+            {
+                string charName = item.CharacterName ?? item.CharacterId;
+
+                int rowIndex = _rightPanel.DgvCharFiles.Rows.Add(
+                    PrivacyMode.MaskText(charName),
+                    PrivacyMode.MaskId(item.CharacterId),
+                    item.ModifyTime.ToString("MM-dd HH:mm"),
+                    "💾",
+                    "📂"
+                );
+
+                if (rowIndex >= 0)
+                {
+                    _rightPanel.DgvCharFiles.Rows[rowIndex].Tag = item;
+                }
+            }
+
+            // ★★★ 默认按修改时间递减排序（覆盖上次手动排序状态）★★★
+            _rightPanel.DgvCharFiles.Sort(_rightPanel.DgvCharFiles.Columns[2], ListSortDirection.Descending);
         }
 
         private void RefreshBackupList()
@@ -919,8 +956,9 @@ namespace EVEBox.App
                     _rightPanel.DgvBackups.Rows.Clear();
                     foreach (var item in items)
                     {
+                        // 备份名里含备注/ID/角色名，按当前隐私状态重新遮蔽
                         int rowIndex = _rightPanel.DgvBackups.Rows.Add(
-                            item.DisplayName,
+                            BackupDisplayName(item),
                             item.CreatedAt.ToString("MM-dd HH:mm"),
                             "📂",
                             "↩️",
@@ -936,6 +974,22 @@ namespace EVEBox.App
                 },
                 new FileSyncManager()
             );
+        }
+
+        /// <summary>
+        /// 备份列表的显示名：关闭隐私模式用缓存好的原名；
+        /// 开启时用备份的原始文件名重新生成，保证备注/ID/角色名都被遮蔽。
+        /// （DisplayName 是一次扫描算一次的缓存，不能直接当当前状态用。）
+        /// </summary>
+        private string BackupDisplayName(BackupItem item)
+        {
+            if (!PrivacyMode.Enabled) return item.DisplayName;
+
+            if (item.IsFile)
+            {
+                return _fileListRefreshService.BuildBackupDisplayName(item.Name) ?? item.DisplayName;
+            }
+            return item.DisplayName;
         }
 
         private void ShowSearchFailDialog()
@@ -973,6 +1027,7 @@ namespace EVEBox.App
             }
 
             // 创建目标列表：显示名（备注优先）+ 用户ID（用于匹配备注）
+            // 显示名在 SyncDialog 内部按隐私模式遮蔽，这里保留原始备注以便匹配
             var targets = otherFiles.Select(item => new FileTargetItem(
                 item.FilePath,
                 _configManager.GetUserDisplayName(item.UserId),
@@ -981,7 +1036,9 @@ namespace EVEBox.App
 
             ShowSyncDialog(
                 sourceItem.FilePath,
-                sourceItem.DisplayName ?? sourceItem.UserId,
+                PrivacyMode.Enabled
+                    ? PrivacyMode.MaskUserLabel(null, sourceItem.UserId)
+                    : (sourceItem.DisplayName ?? sourceItem.UserId),
                 targets,
                 _configManager.GetUserRemarks(),
                 "同步用户文件");
@@ -996,15 +1053,15 @@ namespace EVEBox.App
                 return;
             }
 
-            // 角色文件没有备注，DisplayName 为角色名或ID
+            // 角色文件没有备注，DisplayName 为角色名或ID（隐私模式下要遮蔽）
             var targets = otherFiles.Select(item => new FileTargetItem(
                 item.FilePath,
-                item.CharacterName ?? item.CharacterId
+                PrivacyMode.MaskText(item.CharacterName ?? item.CharacterId)
             )).ToList();
 
             ShowSyncDialog(
                 sourceItem.FilePath,
-                sourceItem.CharacterName ?? sourceItem.CharacterId,
+                PrivacyMode.MaskText(sourceItem.CharacterName ?? sourceItem.CharacterId),
                 targets,
                 null,
                 "同步角色文件");
@@ -1093,6 +1150,24 @@ namespace EVEBox.App
             }
         }
 
+        /// <summary>
+        /// 应用隐私模式：隐藏配置同步界面，并让右侧列表按遮蔽规则重新渲染。
+        /// 只影响显示，不动任何文件与配置数据。
+        /// </summary>
+        /// <summary>
+        /// 应用隐私模式：隐藏配置同步界面的内容，并让右侧列表按遮蔽规则重新渲染。
+        /// 只影响显示，不动任何文件与配置数据。
+        /// </summary>
+        private void ApplyPrivacyMode()
+        {
+            // 隐私模式只隐藏「敏感信息」，不限制任何功能：
+            // 配置同步左栏入口与内容一律照常显示，只是其中涉及用户/角色的标识被遮蔽
+            //（表格里的备注/ID/角色名，以及同步对话框里的这些显示）。
+            RefreshUserGridRows();
+            RefreshCharacterGridRows();
+            RefreshBackupList();
+        }
+
         private void ApplyTheme(bool isDark)
         {
             // ★★★ 禁用重绘块：标题栏和主体颜色一次性应用、一次性重绘，避免切换闪烁 ★★★
@@ -1109,6 +1184,8 @@ namespace EVEBox.App
                     : Color.FromArgb(40, 40, 40);   // 暗黑色（显示夜间模式时）
                 _leftPanel.BtnTheme.ForeColor = Color.White;
                 UpdateShipTagButtonState();
+                // 主题会把标题栏按钮底色重置，这里补回隐私模式的开启高亮
+                _titleBarBuilder.SetPrivacyState(PrivacyMode.Enabled);
             }
             finally
             {

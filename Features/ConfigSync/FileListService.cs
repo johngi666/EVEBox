@@ -1,4 +1,4 @@
-﻿using EVEBox.Common.Config;
+using EVEBox.Common.Config;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -239,6 +239,14 @@ namespace EVEBox.Features.ConfigSync
         public string FileName { get; set; } = string.Empty;
         public string UserId { get; set; } = string.Empty;
         public string DisplayName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 用户备注原文（null/空 = 没设备注）。
+        /// DisplayName 存的是未遮蔽的原始显示名，遮蔽在渲染时按当前隐私模式做，
+        /// 这样切换开关能立即生效。
+        /// </summary>
+        public string BeiZhu { get; set; }
+
         public string FilePath { get; set; } = string.Empty;
         public DateTime ModifyTime { get; set; }
         public int RowIndex { get; set; }

@@ -1,4 +1,5 @@
-﻿using EVEBox.Common.Config;
+using EVEBox.Common.Config;
+using EVEBox.Common.Shared;
 using EVEBox.Features.Logging;
 using System;
 using System.Collections.Generic;
@@ -68,15 +69,20 @@ namespace EVEBox.Features.ConfigSync
                 var (users, chars) = _fileListService.ScanFolder(currentFolder);
 
                 // ★★★ 应用用户备注到 DisplayName ★★★
+                // 这里存**未遮蔽的原始显示名**：隐私模式可以在运行时开关，
+                // 若把遮蔽结果存进来，切换开关后表格还显示旧值（曾出过这个 bug）。
+                // 遮蔽统一在渲染时按当前开关状态做。
                 var remarks = _configManager.GetUserRemarks();
                 foreach (var user in users)
                 {
                     if (remarks != null && remarks.TryGetValue(user.UserId, out string remark) && !string.IsNullOrWhiteSpace(remark))
                     {
+                        user.BeiZhu = remark;
                         user.DisplayName = remark;
                     }
                     else
                     {
+                        user.BeiZhu = null;
                         user.DisplayName = user.UserId;
                     }
                 }
@@ -189,6 +195,16 @@ namespace EVEBox.Features.ConfigSync
             });
         }
 
+        /// <summary>
+        /// 按当前隐私模式生成备份文件的显示名。
+        /// 供渲染层在隐私模式切换后重新计算（DisplayName 缓存的是扫描时的状态）。
+        /// </summary>
+        public string BuildBackupDisplayName(string backupFileName)
+            => GetBackupFileDisplayName(backupFileName);
+
+        /// <summary>
+        /// 备份文件的显示名（存原始值；隐私模式遮蔽在渲染层做，见 RefreshBackupList）
+        /// </summary>
         private string GetBackupFileDisplayName(string fileName)
         {
             // 解析 core_user_xxx
@@ -196,13 +212,13 @@ namespace EVEBox.Features.ConfigSync
             if (userMatch.Success)
             {
                 string userId = userMatch.Groups[1].Value;
-                // ★★★ 检查是否有用户备注 ★★★
+                // ★★★ 检查是否有用户备注（隐私模式下备注与ID都遮蔽）★★★
                 var remarks = _configManager.GetUserRemarks();
                 if (remarks != null && remarks.TryGetValue(userId, out string remark) && !string.IsNullOrWhiteSpace(remark))
                 {
-                    return $"📄 {remark} ({userId})";
+                    return $"📄 {PrivacyMode.MaskText(remark)} ({PrivacyMode.MaskId(userId)})";
                 }
-                return $"📄 用户 {userId}";
+                return $"📄 用户 {PrivacyMode.MaskId(userId)}";
             }
 
             // 解析 core_char_xxx
@@ -212,8 +228,8 @@ namespace EVEBox.Features.ConfigSync
                 string charId = charMatch.Groups[1].Value;
                 string cachedName = CharacterCacheManager.GetCachedName(charId);
                 if (!string.IsNullOrEmpty(cachedName))
-                    return $"📄 {cachedName}";
-                return $"📄 角色 {charId}";
+                    return $"📄 {PrivacyMode.MaskText(cachedName)}";
+                return $"📄 角色 {PrivacyMode.MaskId(charId)}";
             }
 
             return $"📄 {fileName}";
@@ -244,12 +260,15 @@ namespace EVEBox.Features.ConfigSync
             var remarks = _configManager.GetUserRemarks();
             foreach (var user in _userFileItems)
             {
+                // 存原始值，遮蔽交给渲染层（见 RefreshUserGridRows）
                 if (remarks != null && remarks.TryGetValue(user.UserId, out string remark) && !string.IsNullOrWhiteSpace(remark))
                 {
+                    user.BeiZhu = remark;
                     user.DisplayName = remark;
                 }
                 else
                 {
+                    user.BeiZhu = null;
                     user.DisplayName = user.UserId;
                 }
             }

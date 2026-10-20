@@ -9,16 +9,18 @@ namespace EVEBox.App
         /// <summary>
         /// 当前版本号（发布时修改此处即可）
         /// </summary>
-        public const string Version = "v6.16";
+        public const string Version = "v6.17";
 
         /// <summary>
         /// 更新内容（每行用 \n 换行）
         /// </summary>
         public const string ReleaseNotes =
-            "   - 修复星系间距查询的拼音首字母检索：此前输入 jt、sbsj 等首字母匹配不到中文星系名，现已可正常检索\n" +
+            "   - 新增隐私模式开关（标题栏右侧）：开启后用户/角色ID只显示前4位，用户备注与角色名全部遮蔽，" +
+            "适合截图录屏；功能不受限制，配置同步照常使用\n" +
+            "   - 隐私模式状态会记住，下次启动保持上次选择；只影响显示，不改动任何文件与配置数据\n" +
+            "   - 修复星系间距查询的拼音首字母检索：输入 jt、sbsj 等首字母匹配不到中文星系名的问题\n" +
             "   - 修复「装配方案导入」「配置方案导入」的内置模板加载不出来（模板列表空白）\n" +
-            "   - 启动流程优化：去掉重复执行的操作，操作日志不再记录每次开机的过程噪音\n" +
-            "   - 内置模板、星系数据在升级后会自动整理，不再残留旧目录";
+            "   - 启动流程优化：去掉重复执行的操作，操作日志不再记录每次开机的过程噪音";
 
         /// <summary>
         /// 主程序标准文件名（与 csproj 的 AssemblyName 保持一致）
@@ -29,7 +31,6 @@ namespace EVEBox.App
         /// 更新日期
         /// </summary>
         public const string ReleaseDate = "2026年10月7日";
-
         /// <summary>
         /// 项目主页（Gitee）
         /// </summary>
